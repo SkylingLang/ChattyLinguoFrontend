@@ -13,9 +13,13 @@ env/
 .mypy_cache/
 dist/
 build/
+node_modules/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
 *.egg-info/
 .idea/
 .vscode/
 logs/
 storage/
-

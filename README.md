@@ -8,7 +8,7 @@ Telegram AI English tutor plus Telegram Mini App.
 - aiogram Telegram bot with commands: `/start`, `/menu`, `/unlimited`, `/voice`, `/level`, `/topics`, `/saved`, `/stats`, `/help`, `/reset`, `/language`.
 - PostgreSQL data model for users, settings, messages, saved words, subscriptions, payments, topics, grammar explanations, and pronunciation scores.
 - OpenAI service layer for chat replies, correction, explanation, pronunciation scoring, translation, dictionary entries, transcription, and TTS.
-- React/Vite Mini App frontend with Profile, Saved, Stars, Language, and Settings tabs.
+- Flutter web Mini App frontend with Profile, Saved, Stars, Language, and Settings tabs.
 
 ## Backend setup
 
@@ -33,14 +33,14 @@ Update `.env` with:
 
 ```powershell
 cd mini_app
-npm install
-npm run dev
+flutter pub get
+flutter run -d chrome --dart-define=API_BASE_URL=http://localhost:8000
 ```
 
 For local browser testing, open:
 
 ```text
-http://localhost:5173?telegram_user_id=1
+http://localhost:xxxxx?telegram_user_id=1
 ```
 
 The user must exist first, normally created by `/start` in Telegram. During development you can create one by calling the bot flow or inserting a test user.
@@ -72,9 +72,9 @@ app/
   schemas/          Pydantic API contracts
   services/         OpenAI, tutor, stats, subscription logic
 mini_app/
-  src/api/          frontend API client
-  src/screens/      Mini App screens
-  src/components/   reusable UI components
+  lib/              Flutter source
+  web/              Flutter web shell
+  vercel.json       Vercel build config
 ```
 
 ## Next production steps

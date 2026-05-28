@@ -1,0 +1,12 @@
+{
+  "name": "ChattyLinguo",
+  "short_name": "ChattyLinguo",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#358fe8",
+  "description": "Telegram Mini App for ChattyLinguo",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false
+}
+
