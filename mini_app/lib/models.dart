@@ -49,7 +49,8 @@ class UserProfile {
       selectedVoice: json['selected_voice'] as String? ?? 'Alexa',
       voiceEnabled: json['voice_enabled'] as bool? ?? true,
       voiceSpeed: (json['voice_speed'] as num?)?.toDouble() ?? 1,
-      selectedTopics: List<String>.from(json['selected_topics'] as List? ?? const []),
+      selectedTopics:
+          List<String>.from(json['selected_topics'] as List? ?? const []),
       subscriptionStatus: json['subscription_status'] as String? ?? 'free',
       subscriptionPlan: json['subscription_plan'] as String?,
       wordCount: json['word_count'] as int? ?? 0,
@@ -101,3 +102,74 @@ class SavedWord {
   }
 }
 
+class ChatMessage {
+  const ChatMessage({
+    required this.id,
+    required this.role,
+    required this.type,
+    required this.createdAt,
+    this.text,
+    this.transcript,
+    this.audioFileId,
+    this.correction,
+  });
+
+  final int id;
+  final String role;
+  final String type;
+  final String? text;
+  final String? transcript;
+  final String? audioFileId;
+  final String? correction;
+  final String createdAt;
+
+  String get displayText => text ?? transcript ?? '';
+
+  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    return ChatMessage(
+      id: json['id'] as int,
+      role: json['role'] as String? ?? '',
+      type: json['type'] as String? ?? '',
+      text: json['text'] as String?,
+      transcript: json['transcript'] as String?,
+      audioFileId: json['audio_file_id'] as String?,
+      correction: json['correction'] as String?,
+      createdAt: json['created_at'] as String? ?? '',
+    );
+  }
+}
+
+class WordDefinition {
+  const WordDefinition({
+    required this.word,
+    required this.examples,
+    required this.antonyms,
+    required this.saved,
+    this.translation,
+    this.definition,
+    this.partOfSpeech,
+    this.pronunciation,
+  });
+
+  final String word;
+  final String? translation;
+  final String? definition;
+  final List<String> examples;
+  final String? partOfSpeech;
+  final String? pronunciation;
+  final List<String> antonyms;
+  final bool saved;
+
+  factory WordDefinition.fromJson(Map<String, dynamic> json) {
+    return WordDefinition(
+      word: json['word'] as String? ?? '',
+      translation: json['translation'] as String?,
+      definition: json['definition'] as String?,
+      examples: List<String>.from(json['examples'] as List? ?? const []),
+      partOfSpeech: json['part_of_speech'] as String?,
+      pronunciation: json['pronunciation'] as String?,
+      antonyms: List<String>.from(json['antonyms'] as List? ?? const []),
+      saved: json['saved'] as bool? ?? false,
+    );
+  }
+}

@@ -1,8 +1,10 @@
-from aiogram import F, Router
-from aiogram.types import BufferedInputFile
-from aiogram.types import Message
+from html import escape
 
-from app.bot.keyboards import response_actions
+from aiogram import F, Router
+from aiogram.enums import ParseMode
+from aiogram.types import BufferedInputFile, Message
+
+from app.bot.keyboards import response_actions, voice_response_actions
 from app.db.session import AsyncSessionLocal
 from app.models.enums import MessageRole, MessageType
 from app.repositories.messages import get_last_messages, save_message, trim_old_messages
@@ -11,6 +13,13 @@ from app.services.openai_client import openai_service
 from app.services.tutor import generate_chat_reply, generate_voice_reply
 
 router = Router()
+
+
+def _correction_text(original: str, correction: str | None) -> str:
+    cleaned_correction = correction.strip() if correction else None
+    if cleaned_correction and cleaned_correction.lower() != original.strip().lower():
+        return f"💡 <s>{escape(original)}</s>\n{escape(cleaned_correction)}"
+    return f"✅ {escape(original)}"
 
 
 @router.message(F.text)
@@ -35,17 +44,29 @@ async def handle_text(message: Message) -> None:
             session,
             user.id,
             MessageRole.ASSISTANT,
-            MessageType.TEXT,
+            MessageType.VOICE,
             text=reply.reply_text,
             correction=reply.correction,
         )
         await trim_old_messages(session, user.id)
         await session.commit()
 
-    parts = [reply.reply_text]
-    if reply.correction:
-        parts.append(f"\nCorrection:\n✅ {reply.correction}")
-    await message.answer("\n".join(parts), reply_markup=response_actions(assistant_message.id))
+    await message.answer(
+        _correction_text(message.text or "", reply.correction),
+        reply_markup=response_actions(assistant_message.id),
+        parse_mode=ParseMode.HTML,
+    )
+    if user.voice_enabled:
+        speech = await generate_voice_reply(reply.reply_text, user.selected_voice)
+        if speech:
+            await message.answer_voice(
+                BufferedInputFile(speech, filename="chatty-reply.mp3"),
+                reply_markup=voice_response_actions(assistant_message.id, tg_user.id),
+            )
+    else:
+        await message.answer(
+            reply.reply_text, reply_markup=voice_response_actions(assistant_message.id, tg_user.id)
+        )
 
 
 @router.message(F.voice)
@@ -77,15 +98,26 @@ async def handle_voice(message: Message) -> None:
             session,
             user.id,
             MessageRole.ASSISTANT,
-            MessageType.TEXT,
+            MessageType.VOICE,
             text=reply.reply_text,
             correction=reply.correction,
         )
         await trim_old_messages(session, user.id)
         await session.commit()
 
-    await message.answer(f"Transcript:\n{transcript}\n\n{reply.reply_text}", reply_markup=response_actions(assistant_message.id))
+    await message.answer(
+        _correction_text(transcript, reply.correction),
+        reply_markup=response_actions(assistant_message.id, allow_score=True),
+        parse_mode=ParseMode.HTML,
+    )
     if user.voice_enabled:
         speech = await generate_voice_reply(reply.reply_text, user.selected_voice)
         if speech:
-            await message.answer_voice(BufferedInputFile(speech, filename="chatty-reply.mp3"))
+            await message.answer_voice(
+                BufferedInputFile(speech, filename="chatty-reply.mp3"),
+                reply_markup=voice_response_actions(assistant_message.id, tg_user.id),
+            )
+    else:
+        await message.answer(
+            reply.reply_text, reply_markup=voice_response_actions(assistant_message.id, tg_user.id)
+        )

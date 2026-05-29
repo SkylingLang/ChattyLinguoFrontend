@@ -39,6 +39,11 @@ class _MiniAppHomeState extends State<MiniAppHome> {
   int tabIndex = 0;
   String? error;
 
+  int? get messageId {
+    final raw = Uri.base.queryParameters['message_id'];
+    return raw == null ? null : int.tryParse(raw);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -50,7 +55,8 @@ class _MiniAppHomeState extends State<MiniAppHome> {
       final nextProfile = await api.getProfile();
       setState(() => profile = nextProfile);
     } catch (_) {
-      setState(() => error = 'Open the bot with /start first, then reopen this Mini App.');
+      setState(() =>
+          error = 'Open the bot with /start first, then reopen this Mini App.');
     }
   }
 
@@ -64,8 +70,22 @@ class _MiniAppHomeState extends State<MiniAppHome> {
           child: Center(
             child: Builder(
               builder: (_) {
-                if (error != null) return EmptyPanel(text: error!);
-                if (currentProfile == null) return const EmptyPanel(text: 'Loading...');
+                if (error != null) {
+                  return EmptyPanel(text: error!);
+                }
+                if (currentProfile == null) {
+                  return const EmptyPanel(text: 'Loading...');
+                }
+                final currentMessageId = messageId;
+                if (currentMessageId != null) {
+                  return TranscriptScreen(
+                    api: api,
+                    profile: currentProfile,
+                    messageId: currentMessageId,
+                    onLanguageChanged: (value) =>
+                        setState(() => profile = value),
+                  );
+                }
                 return IndexedStack(
                   index: tabIndex,
                   children: [
@@ -89,17 +109,250 @@ class _MiniAppHomeState extends State<MiniAppHome> {
           ),
         ),
       ),
-      bottomNavigationBar: NavigationBar(
-        height: 78,
-        selectedIndex: tabIndex,
-        onDestinationSelected: (index) => setState(() => tabIndex = index),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.person), label: 'Profile'),
-          NavigationDestination(icon: Icon(Icons.bookmark), label: 'Saved'),
-          NavigationDestination(icon: Icon(Icons.star), label: 'Stars'),
-          NavigationDestination(icon: Icon(Icons.language), label: 'Language'),
-          NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
-        ],
+      bottomNavigationBar: messageId != null
+          ? null
+          : NavigationBar(
+              height: 78,
+              selectedIndex: tabIndex,
+              onDestinationSelected: (index) =>
+                  setState(() => tabIndex = index),
+              destinations: const [
+                NavigationDestination(
+                    icon: Icon(Icons.person), label: 'Profile'),
+                NavigationDestination(
+                    icon: Icon(Icons.bookmark), label: 'Saved'),
+                NavigationDestination(icon: Icon(Icons.star), label: 'Stars'),
+                NavigationDestination(
+                    icon: Icon(Icons.language), label: 'Language'),
+                NavigationDestination(
+                    icon: Icon(Icons.settings), label: 'Settings'),
+              ],
+            ),
+    );
+  }
+}
+
+class TranscriptScreen extends StatefulWidget {
+  const TranscriptScreen({
+    required this.api,
+    required this.profile,
+    required this.messageId,
+    required this.onLanguageChanged,
+    super.key,
+  });
+
+  final ApiClient api;
+  final UserProfile profile;
+  final int messageId;
+  final ValueChanged<UserProfile> onLanguageChanged;
+
+  @override
+  State<TranscriptScreen> createState() => _TranscriptScreenState();
+}
+
+class _TranscriptScreenState extends State<TranscriptScreen> {
+  late Future<ChatMessage> message;
+
+  @override
+  void initState() {
+    super.initState();
+    message = widget.api.getMessage(widget.messageId);
+  }
+
+  Future<void> _showWord(String rawWord) async {
+    final word = rawWord.replaceAll(RegExp(r"[^A-Za-z'-]"), '');
+    if (word.isEmpty) return;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return FutureBuilder<WordDefinition>(
+          future: widget.api.defineWord(word),
+          builder: (context, snapshot) {
+            final entry = snapshot.data;
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 18,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 520),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 44,
+                          height: 5,
+                          decoration: BoxDecoration(
+                            color: const Color(0xffd4d7dc),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(word,
+                          style: const TextStyle(
+                              fontSize: 34, fontWeight: FontWeight.w800)),
+                      if (snapshot.connectionState == ConnectionState.waiting)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: LinearProgressIndicator(),
+                        )
+                      else if (snapshot.hasError)
+                        const Text('Could not load this word.',
+                            style: TextStyle(fontSize: 18))
+                      else if (entry != null) ...[
+                        if (entry.translation != null)
+                          Text(entry.translation!,
+                              style: const TextStyle(fontSize: 22)),
+                        if (entry.partOfSpeech != null ||
+                            entry.pronunciation != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              [entry.partOfSpeech, entry.pronunciation]
+                                  .where(
+                                      (item) => item != null && item.isNotEmpty)
+                                  .join(' · '),
+                              style: const TextStyle(
+                                  color: Color(0xff68717a), fontSize: 16),
+                            ),
+                          ),
+                        if (entry.definition != null) ...[
+                          const SizedBox(height: 18),
+                          Text(entry.definition!,
+                              style:
+                                  const TextStyle(fontSize: 18, height: 1.35)),
+                        ],
+                        if (entry.examples.isNotEmpty) ...[
+                          const SizedBox(height: 18),
+                          const Text('Examples',
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.w800)),
+                          ...entry.examples.map(
+                            (example) => Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(example,
+                                  style: const TextStyle(fontSize: 17)),
+                            ),
+                          ),
+                        ],
+                        if (entry.antonyms.isNotEmpty) ...[
+                          const SizedBox(height: 18),
+                          Text(
+                            'Antonyms: ${entry.antonyms.join(', ')}',
+                            style: const TextStyle(fontSize: 17),
+                          ),
+                        ],
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  List<InlineSpan> _wordSpans(String text) {
+    final matches = RegExp(r"\S+|\s+").allMatches(text);
+    return matches.map((match) {
+      final token = match.group(0) ?? '';
+      if (token.trim().isEmpty) return TextSpan(text: token);
+      return WidgetSpan(
+        alignment: PlaceholderAlignment.baseline,
+        baseline: TextBaseline.alphabetic,
+        child: GestureDetector(
+          onTap: () => _showWord(token),
+          child: Text(
+            token,
+            style: const TextStyle(
+              fontSize: 30,
+              height: 1.35,
+              decoration: TextDecoration.underline,
+              decorationColor: Color(0xfff3c400),
+              decorationThickness: 2,
+            ),
+          ),
+        ),
+      );
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<ChatMessage>(
+      future: message,
+      builder: (context, snapshot) {
+        final text = snapshot.data?.displayText ?? '';
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Transcript',
+                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 14),
+              Panel(
+                child: snapshot.connectionState == ConnectionState.waiting
+                    ? const LinearProgressIndicator()
+                    : RichText(
+                        text: TextSpan(
+                            style: const TextStyle(color: Colors.black),
+                            children: _wordSpans(text))),
+              ),
+              const SizedBox(height: 22),
+              const Text(
+                'Нажмите на любое слово, чтобы увидеть определение',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 22,
+                    color: Color(0xff9a9da3),
+                    fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 54),
+              WideButton(
+                text: widget.profile.nativeLanguage,
+                color: const Color(0xfff3f3f5),
+                textColor: Colors.black,
+                onPressed: () => _pickLanguage(context),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _pickLanguage(BuildContext context) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.78,
+        child: LanguageScreen(
+          profile: widget.profile,
+          api: widget.api,
+          onChanged: (value) {
+            widget.onLanguageChanged(value);
+            Navigator.of(context).pop();
+          },
+        ),
       ),
     );
   }
@@ -155,14 +408,26 @@ class ProfileScreen extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 8),
-          const CircleAvatar(radius: 56, backgroundColor: Color(0xfff0f4ff), child: Text('👩🏻', style: TextStyle(fontSize: 62))),
+          const CircleAvatar(
+              radius: 56,
+              backgroundColor: Color(0xfff0f4ff),
+              child: Text('👩🏻', style: TextStyle(fontSize: 62))),
           const SizedBox(height: 10),
-          Text(profile.name ?? 'Learner', style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
-          const Text('⭐ 0', style: TextStyle(fontSize: 24, color: Color(0xff606975))),
+          Text(profile.name ?? 'Learner',
+              style:
+                  const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
+          const Text('⭐ 0',
+              style: TextStyle(fontSize: 24, color: Color(0xff606975))),
           const SizedBox(height: 22),
-          const WideButton(text: 'Invite Friends', color: Color(0xff358fe8), textColor: Colors.white),
+          const WideButton(
+              text: 'Invite Friends',
+              color: Color(0xff358fe8),
+              textColor: Colors.white),
           const SizedBox(height: 14),
-          const WideButton(text: 'Share Profile', color: Color(0xffbedbf5), textColor: Color(0xff2f8be8)),
+          const WideButton(
+              text: 'Share Profile',
+              color: Color(0xffbedbf5),
+              textColor: Color(0xff2f8be8)),
           const SizedBox(height: 20),
           Panel(
             child: Column(
@@ -170,22 +435,32 @@ class ProfileScreen extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.local_fire_department, color: Color(0xffff8317), size: 62),
-                    Text('${profile.currentStreak == 0 ? 1 : profile.currentStreak}', style: const TextStyle(fontSize: 72, fontWeight: FontWeight.w800)),
+                    const Icon(Icons.local_fire_department,
+                        color: Color(0xffff8317), size: 62),
+                    Text(
+                        '${profile.currentStreak == 0 ? 1 : profile.currentStreak}',
+                        style: const TextStyle(
+                            fontSize: 72, fontWeight: FontWeight.w800)),
                   ],
                 ),
-                const Text('days streak', style: TextStyle(fontSize: 26, color: Color(0xff68717a))),
+                const Text('days streak',
+                    style: TextStyle(fontSize: 26, color: Color(0xff68717a))),
                 const SizedBox(height: 24),
                 const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [Text('‹', style: TextStyle(fontSize: 22)), Text('May 2026', style: TextStyle(fontSize: 18)), Text('›', style: TextStyle(fontSize: 22))],
+                  children: [
+                    Text('‹', style: TextStyle(fontSize: 22)),
+                    Text('May 2026', style: TextStyle(fontSize: 18)),
+                    Text('›', style: TextStyle(fontSize: 22))
+                  ],
                 ),
                 const SizedBox(height: 16),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: days.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 7, mainAxisExtent: 42),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 7, mainAxisExtent: 42),
                   itemBuilder: (context, index) {
                     final day = days[index];
                     final isWeekend = index % 7 == 5 || index % 7 == 6;
@@ -197,13 +472,24 @@ class ProfileScreen extends StatelessWidget {
                         height: 38,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: isToday ? const Color(0xff358fe8) : Colors.transparent,
+                          color: isToday
+                              ? const Color(0xff358fe8)
+                              : Colors.transparent,
                           shape: BoxShape.circle,
-                          border: isOutlined ? Border.all(color: const Color(0xffff8317), width: 2) : null,
+                          border: isOutlined
+                              ? Border.all(
+                                  color: const Color(0xffff8317), width: 2)
+                              : null,
                         ),
                         child: Text(
                           '$day',
-                          style: TextStyle(fontSize: 17, color: isToday ? Colors.white : isWeekend ? Colors.red : Colors.black),
+                          style: TextStyle(
+                              fontSize: 17,
+                              color: isToday
+                                  ? Colors.white
+                                  : isWeekend
+                                      ? Colors.red
+                                      : Colors.black),
                         ),
                       ),
                     );
@@ -221,9 +507,11 @@ class ProfileScreen extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               children: [
                 StatTile(value: '${profile.wordCount}', label: 'Words Said'),
-                StatTile(value: '${profile.maximumStreak}', label: 'Max streak'),
+                StatTile(
+                    value: '${profile.maximumStreak}', label: 'Max streak'),
                 const StatTile(value: '0%', label: 'Correct'),
-                StatTile(value: '${profile.messagesCount}', label: 'Messages Sent'),
+                StatTile(
+                    value: '${profile.messagesCount}', label: 'Messages Sent'),
               ],
             ),
           ),
@@ -278,9 +566,15 @@ class _SavedScreenState extends State<SavedScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(word.word, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w800)),
-                  if (word.translation != null) Text(word.translation!, style: const TextStyle(fontSize: 18)),
-                  if (word.definition != null) Text(word.definition!, style: const TextStyle(color: Color(0xff68717a))),
+                  Text(word.word,
+                      style: const TextStyle(
+                          fontSize: 26, fontWeight: FontWeight.w800)),
+                  if (word.translation != null)
+                    Text(word.translation!,
+                        style: const TextStyle(fontSize: 18)),
+                  if (word.definition != null)
+                    Text(word.definition!,
+                        style: const TextStyle(color: Color(0xff68717a))),
                 ],
               ),
             );
@@ -304,17 +598,28 @@ class StarsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Chatty Unlimited', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
+            const Text('Chatty Unlimited',
+                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
             const SizedBox(height: 18),
-            const Text('✅ Unlimited messages and audio', style: TextStyle(fontSize: 20)),
-            const Text('✅ You can unsubscribe at any time', style: TextStyle(fontSize: 20)),
-            const Text('✅ Subscribers are more likely to improve their level', style: TextStyle(fontSize: 20)),
+            const Text('✅ Unlimited messages and audio',
+                style: TextStyle(fontSize: 20)),
+            const Text('✅ You can unsubscribe at any time',
+                style: TextStyle(fontSize: 20)),
+            const Text('✅ Subscribers are more likely to improve their level',
+                style: TextStyle(fontSize: 20)),
             const SizedBox(height: 22),
-            const WideButton(text: 'Monthly subscription · \$9.99/month', color: Color(0xff358fe8), textColor: Colors.white),
+            const WideButton(
+                text: 'Monthly subscription · \$9.99/month',
+                color: Color(0xff358fe8),
+                textColor: Colors.white),
             const SizedBox(height: 12),
-            const WideButton(text: 'Yearly subscription · \$49.99/year', color: Color(0xff358fe8), textColor: Colors.white),
+            const WideButton(
+                text: 'Yearly subscription · \$49.99/year',
+                color: Color(0xff358fe8),
+                textColor: Colors.white),
             const SizedBox(height: 16),
-            Text('Status: ${profile.subscriptionStatus}', style: const TextStyle(color: Color(0xff68717a))),
+            Text('Status: ${profile.subscriptionStatus}',
+                style: const TextStyle(color: Color(0xff68717a))),
           ],
         ),
       ),
@@ -323,7 +628,11 @@ class StarsScreen extends StatelessWidget {
 }
 
 class LanguageScreen extends StatelessWidget {
-  const LanguageScreen({required this.profile, required this.onChanged, required this.api, super.key});
+  const LanguageScreen(
+      {required this.profile,
+      required this.onChanged,
+      required this.api,
+      super.key});
 
   final UserProfile profile;
   final ValueChanged<UserProfile> onChanged;
@@ -365,25 +674,45 @@ class LanguageScreen extends StatelessWidget {
 }
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({required this.profile, required this.onChanged, required this.api, super.key});
+  const SettingsScreen(
+      {required this.profile,
+      required this.onChanged,
+      required this.api,
+      super.key});
 
   final UserProfile profile;
   final ValueChanged<UserProfile> onChanged;
   final ApiClient api;
 
   static const voices = ['Alex', 'Eric', 'Henry', 'James', 'Alexa', 'Emily'];
-  static const levels = ['Beginner', 'Elementary', 'Pre-Intermediate', 'Intermediate', 'Upper-Intermediate', 'Advanced', 'Native'];
-  static const topics = ['Travel and Culture', 'Food and Cooking', 'Music and Art', 'Sports and Fitness', 'Technology and Social Media'];
+  static const levels = [
+    'Beginner',
+    'Elementary',
+    'Pre-Intermediate',
+    'Intermediate',
+    'Upper-Intermediate',
+    'Advanced',
+    'Native'
+  ];
+  static const topics = [
+    'Travel and Culture',
+    'Food and Cooking',
+    'Music and Art',
+    'Sports and Fitness',
+    'Technology and Social Media'
+  ];
 
   @override
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
-        const SettingsRow(icon: Icons.favorite, label: 'Get unlimited access', muted: true),
+        const SettingsRow(
+            icon: Icons.favorite, label: 'Get unlimited access', muted: true),
         const SizedBox(height: 30),
         const SettingsRow(icon: Icons.group_add, label: 'Invite friends'),
-        const SettingsRow(icon: Icons.card_giftcard, label: 'Gift subscription'),
+        const SettingsRow(
+            icon: Icons.card_giftcard, label: 'Gift subscription'),
         const SizedBox(height: 30),
         const SettingsRow(icon: Icons.groups, label: 'Change mode'),
         SettingsRow(
@@ -391,7 +720,8 @@ class SettingsScreen extends StatelessWidget {
           label: 'Change Chatty voice · ${profile.selectedVoice}',
           onTap: () async {
             final index = voices.indexOf(profile.selectedVoice);
-            onChanged(await api.updateVoice(voices[(index + 1) % voices.length], true));
+            onChanged(await api.updateVoice(
+                voices[(index + 1) % voices.length], true));
           },
         ),
         SettingsRow(
@@ -399,10 +729,13 @@ class SettingsScreen extends StatelessWidget {
           label: 'Change your English level · ${profile.englishLevel}',
           onTap: () async {
             final index = levels.indexOf(profile.englishLevel);
-            onChanged(await api.updateLevel(levels[(index + 1) % levels.length]));
+            onChanged(
+                await api.updateLevel(levels[(index + 1) % levels.length]));
           },
         ),
-        SettingsRow(icon: Icons.speed, label: 'Change Chatty voice speed · ${profile.voiceSpeed}x'),
+        SettingsRow(
+            icon: Icons.speed,
+            label: 'Change Chatty voice speed · ${profile.voiceSpeed}x'),
         const SettingsRow(icon: Icons.list, label: 'Choose topics'),
         const SizedBox(height: 12),
         Wrap(
@@ -438,18 +771,27 @@ class Panel extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(color: const Color(0xfff2f2f4), borderRadius: BorderRadius.circular(28)),
+      decoration: BoxDecoration(
+          color: const Color(0xfff2f2f4),
+          borderRadius: BorderRadius.circular(28)),
       child: child,
     );
   }
 }
 
 class WideButton extends StatelessWidget {
-  const WideButton({required this.text, required this.color, required this.textColor, super.key});
+  const WideButton({
+    required this.text,
+    required this.color,
+    required this.textColor,
+    this.onPressed,
+    super.key,
+  });
 
   final String text;
   final Color color;
   final Color textColor;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -457,9 +799,12 @@ class WideButton extends StatelessWidget {
       width: double.infinity,
       height: 60,
       child: FilledButton(
-        style: FilledButton.styleFrom(backgroundColor: color, foregroundColor: textColor),
-        onPressed: () {},
-        child: Text(text, textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+        style: FilledButton.styleFrom(
+            backgroundColor: color, foregroundColor: textColor),
+        onPressed: onPressed ?? () {},
+        child: Text(text,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
       ),
     );
   }
@@ -477,15 +822,22 @@ class StatTile extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(value, style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w800)),
-        Text(label, style: const TextStyle(fontSize: 22, color: Color(0xff68717a))),
+        Text(value,
+            style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w800)),
+        Text(label,
+            style: const TextStyle(fontSize: 22, color: Color(0xff68717a))),
       ],
     );
   }
 }
 
 class LanguageRow extends StatelessWidget {
-  const LanguageRow({required this.code, required this.language, required this.selected, required this.onTap, super.key});
+  const LanguageRow(
+      {required this.code,
+      required this.language,
+      required this.selected,
+      required this.onTap,
+      super.key});
 
   final String code;
   final String language;
@@ -497,11 +849,21 @@ class LanguageRow extends StatelessWidget {
     return ListTile(
       minTileHeight: 70,
       tileColor: selected ? const Color(0xffe5f1ff) : const Color(0xfff3f3f5),
-      leading: const CircleAvatar(radius: 28, backgroundColor: Color(0xfff0f4ff), child: Text('👩🏻', style: TextStyle(fontSize: 30))),
+      leading: const CircleAvatar(
+          radius: 28,
+          backgroundColor: Color(0xfff0f4ff),
+          child: Text('👩🏻', style: TextStyle(fontSize: 30))),
       title: Row(
         children: [
-          SizedBox(width: 34, child: Text(code, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800))),
-          Expanded(child: Text(language, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800))),
+          SizedBox(
+              width: 34,
+              child: Text(code,
+                  style: const TextStyle(
+                      fontSize: 13, fontWeight: FontWeight.w800))),
+          Expanded(
+              child: Text(language,
+                  style: const TextStyle(
+                      fontSize: 22, fontWeight: FontWeight.w800))),
         ],
       ),
       trailing: const Icon(Icons.chevron_right, color: Color(0xffc7c7c7)),
@@ -511,7 +873,12 @@ class LanguageRow extends StatelessWidget {
 }
 
 class SettingsRow extends StatelessWidget {
-  const SettingsRow({required this.icon, required this.label, this.muted = false, this.onTap, super.key});
+  const SettingsRow(
+      {required this.icon,
+      required this.label,
+      this.muted = false,
+      this.onTap,
+      super.key});
 
   final IconData icon;
   final String label;
@@ -526,10 +893,14 @@ class SettingsRow extends StatelessWidget {
       leading: Container(
         width: 38,
         height: 38,
-        decoration: BoxDecoration(color: muted ? const Color(0xffff2c62) : const Color(0xff1681f7), borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(
+            color: muted ? const Color(0xffff2c62) : const Color(0xff1681f7),
+            borderRadius: BorderRadius.circular(8)),
         child: Icon(icon, color: Colors.white),
       ),
-      title: Text(label, style: TextStyle(fontSize: 21, color: muted ? Colors.white : Colors.black)),
+      title: Text(label,
+          style: TextStyle(
+              fontSize: 21, color: muted ? Colors.white : Colors.black)),
       trailing: const Icon(Icons.chevron_right, color: Color(0xffc7c7c7)),
       onTap: onTap,
     );
@@ -549,4 +920,3 @@ class EmptyPanel extends StatelessWidget {
     );
   }
 }
-

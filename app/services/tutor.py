@@ -1,6 +1,6 @@
 from app.models.message import Message
 from app.models.user import User
-from app.schemas.message import ChatReply, ExplainResponse, PronunciationScoreOut
+from app.schemas.message import ChatReply, ExplainResponse, HelpResponse, PronunciationScoreOut
 from app.schemas.translation import TranslateResponse
 from app.schemas.word import WordDefinition
 from app.services.openai_client import openai_service
@@ -26,9 +26,12 @@ def _history_text(messages: list[Message]) -> str:
 async def generate_chat_reply(user: User, user_text: str, history: list[Message]) -> ChatReply:
     system_prompt = (
         "You are Chatty, a warm English speaking tutor inside Telegram. "
-        "Reply only in English. Keep the conversation natural, correct mistakes gently, "
-        "and adapt to the learner level. Return JSON with keys: reply_text, correction, "
-        "quick_explanation."
+        "Reply only in English. The reply_text is for a voice answer, so answer the learner's "
+        "question naturally and end with one friendly follow-up question. Do not include "
+        "transcription, correction, grammar analysis, scores, or labels in reply_text. "
+        "Return JSON with keys: reply_text, correction, quick_explanation. For correction, "
+        "return only the fully corrected version of the learner message, or null if there is "
+        "no meaningful mistake."
     )
     user_prompt = f"""
 Learner profile:
@@ -56,6 +59,29 @@ New learner message:
         correction=data.get("correction"),
         quick_explanation=data.get("quick_explanation"),
     )
+
+
+async def generate_conversation_help(user: User, user_text: str, reply_text: str | None = None) -> HelpResponse:
+    system_prompt = (
+        "You are an English speaking coach. Return short plain text with three sections: "
+        "Beginning, Useful words and structures, Example complete answer. Help the learner "
+        "continue the conversation. Use simple English, bullets, and one concise sample answer."
+    )
+    data = await openai_service.chat_text(
+        system_prompt,
+        f"Level: {user.english_level}\nLearner said: {user_text}\nChatty replied: {reply_text or ''}",
+    )
+    if not data:
+        data = (
+            'Beginning:\n- Start with a short answer: "My day is..." or "These days, I..."\n'
+            '- Add one or two details: "I work", "I study", "I cook", "I play sports".\n'
+            '- Use simple connectors: "and", "but", "so", "because".\n\n'
+            'Useful words and structures:\n- "usually", "sometimes", "every day", "right now".\n'
+            '- "I enjoy...", "I want to...", "I am learning...".\n\n'
+            'Example complete answer:\n'
+            '"These days, I am busy, but I feel good. I study every day, and I relax by watching movies."'
+        )
+    return HelpResponse(text=data)
 
 
 async def explain_mistake(user: User, original_text: str, corrected_text: str | None) -> ExplainResponse:
@@ -147,4 +173,3 @@ async def get_word_definition(word: str, native_language: str, saved: bool = Fal
 
 async def generate_voice_reply(text: str, selected_voice: str) -> bytes:
     return await openai_service.generate_speech(text, VOICE_MAP.get(selected_voice, "nova"))
-

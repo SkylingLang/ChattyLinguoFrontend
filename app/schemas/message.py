@@ -24,6 +24,10 @@ class ChatReply(BaseModel):
     audio_url: str | None = None
 
 
+class HelpResponse(BaseModel):
+    text: str
+
+
 class ExplainResponse(BaseModel):
     original_text: str
     corrected_text: str
@@ -39,4 +43,3 @@ class PronunciationScoreOut(BaseModel):
     vocabulary_score: int
     topic_score: int
     feedback: str | None = None
-

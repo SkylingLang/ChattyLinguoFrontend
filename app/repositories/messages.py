@@ -41,6 +41,29 @@ async def get_last_messages(session: AsyncSession, user_id: int, limit: int = 20
     return list(reversed(result.scalars().all()))
 
 
+async def get_message(session: AsyncSession, user_id: int, message_id: int) -> Message | None:
+    result = await session.execute(
+        select(Message).where(Message.user_id == user_id, Message.id == message_id)
+    )
+    return result.scalar_one_or_none()
+
+
+async def get_previous_user_message(
+    session: AsyncSession, user_id: int, message_id: int
+) -> Message | None:
+    result = await session.execute(
+        select(Message)
+        .where(
+            Message.user_id == user_id,
+            Message.id < message_id,
+            Message.role == MessageRole.USER.value,
+        )
+        .order_by(Message.id.desc())
+        .limit(1)
+    )
+    return result.scalar_one_or_none()
+
+
 async def trim_old_messages(session: AsyncSession, user_id: int, keep: int = 20) -> None:
     result = await session.execute(
         select(Message.id)
@@ -55,4 +78,3 @@ async def trim_old_messages(session: AsyncSession, user_id: int, keep: int = 20)
 
 async def reset_dialogue(session: AsyncSession, user_id: int) -> None:
     await session.execute(delete(Message).where(Message.user_id == user_id))
-

@@ -46,7 +46,7 @@ async def start(message: Message) -> None:
     await message.answer(
         f"Hi {user.name or 'there'}! I am Chatty, your English speaking tutor.\n\n"
         "Send text or voice. I will reply, correct your English, and help you practice.",
-        reply_markup=mini_app_button("Open Mini App"),
+        reply_markup=mini_app_button("Open Mini App", user.telegram_user_id),
     )
 
 
@@ -82,14 +82,20 @@ async def topics(message: Message) -> None:
 
 @router.message(Command("saved"))
 async def saved(message: Message) -> None:
-    await _user_from_message(message)
-    await message.answer("⬇️ Your Saved Words ⬇️", reply_markup=mini_app_button())
+    user = await _user_from_message(message)
+    await message.answer(
+        "⬇️ Your Saved Words ⬇️",
+        reply_markup=mini_app_button(telegram_user_id=user.telegram_user_id),
+    )
 
 
 @router.message(Command("language"))
 async def language(message: Message) -> None:
-    await _user_from_message(message)
-    await message.answer("Choose your translation language in the Mini App.", reply_markup=mini_app_button())
+    user = await _user_from_message(message)
+    await message.answer(
+        "Choose your translation language in the Mini App.",
+        reply_markup=mini_app_button(telegram_user_id=user.telegram_user_id),
+    )
 
 
 @router.message(Command("stats"))
@@ -114,7 +120,7 @@ async def unlimited(message: Message) -> None:
         "✅ You can unsubscribe at any time\n"
         "✅ Subscribers are more likely to improve their level\n\n"
         f"Current status: {subscription.status}",
-        reply_markup=mini_app_button("Continue"),
+        reply_markup=mini_app_button("Continue", user.telegram_user_id),
     )
 
 
@@ -125,4 +131,3 @@ async def reset(message: Message) -> None:
         await reset_dialogue(session, user.id)
         await session.commit()
     await message.answer("Done. I cleared this dialogue context, but kept your profile and progress.")
-
