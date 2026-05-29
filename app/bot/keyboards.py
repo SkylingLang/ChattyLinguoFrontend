@@ -1,4 +1,4 @@
-from urllib.parse import urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 
@@ -35,22 +35,48 @@ def _mini_app_url(**params: object) -> str:
     if not params:
         return url
     parts = urlsplit(url)
-    query = urlencode({key: value for key, value in params.items() if value is not None})
-    separator = "&" if parts.query else ""
-    return urlunsplit(parts._replace(query=f"{parts.query}{separator}{query}"))
+    existing_params = dict(parse_qsl(parts.query, keep_blank_values=True))
+    for stale_key in ("mode", "message_id", "telegram_user_id"):
+        existing_params.pop(stale_key, None)
+    existing_params.update({key: str(value) for key, value in params.items() if value is not None})
+    return urlunsplit(parts._replace(query=urlencode(existing_params)))
 
 
 def response_actions(
     message_id: int | None = None,
     *,
+    telegram_user_id: int | None = None,
+    has_correction: bool = False,
     allow_score: bool = False,
-    score_checked: bool = False,
 ) -> InlineKeyboardMarkup:
     suffix = f":{message_id}" if message_id else ""
-    buttons = [InlineKeyboardButton(text="Explain", callback_data=f"explain{suffix}")]
+    if has_correction:
+        explain_button = InlineKeyboardButton(
+            text="Explain",
+            web_app=WebAppInfo(
+                url=_mini_app_url(
+                    mode="explain",
+                    message_id=message_id,
+                    telegram_user_id=telegram_user_id,
+                )
+            ),
+        )
+    else:
+        explain_button = InlineKeyboardButton(text="Explain", callback_data=f"explain{suffix}")
+    buttons = [explain_button]
     if allow_score:
-        label = "Score ✅" if score_checked else "Score"
-        buttons.append(InlineKeyboardButton(text=label, callback_data=f"score{suffix}"))
+        buttons.append(
+            InlineKeyboardButton(
+                text="Score",
+                web_app=WebAppInfo(
+                    url=_mini_app_url(
+                        mode="score",
+                        message_id=message_id,
+                        telegram_user_id=telegram_user_id,
+                    )
+                ),
+            )
+        )
     return InlineKeyboardMarkup(inline_keyboard=[buttons])
 
 

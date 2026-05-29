@@ -83,6 +83,13 @@ class _MiniAppHomeState extends State<MiniAppHome> {
                   if (mode == 'score') {
                     return ScoreScreen(api: api, messageId: currentMessageId);
                   }
+                  if (mode == 'explain') {
+                    return ExplainScreen(
+                      api: api,
+                      profile: currentProfile,
+                      messageId: currentMessageId,
+                    );
+                  }
                   return TranscriptScreen(
                     api: api,
                     profile: currentProfile,
@@ -170,6 +177,8 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      enableDrag: false,
+      isDismissible: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -178,91 +187,10 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
         return FutureBuilder<WordDefinition>(
           future: widget.api.defineWord(word),
           builder: (context, snapshot) {
-            final entry = snapshot.data;
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 18,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-              ),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 520),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 44,
-                          height: 5,
-                          decoration: BoxDecoration(
-                            color: const Color(0xffd4d7dc),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Text(word,
-                          style: const TextStyle(
-                              fontSize: 34, fontWeight: FontWeight.w800)),
-                      if (snapshot.connectionState == ConnectionState.waiting)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 24),
-                          child: LinearProgressIndicator(),
-                        )
-                      else if (snapshot.hasError)
-                        const Text('Could not load this word.',
-                            style: TextStyle(fontSize: 18))
-                      else if (entry != null) ...[
-                        if (entry.translation != null)
-                          Text(entry.translation!,
-                              style: const TextStyle(fontSize: 22)),
-                        if (entry.partOfSpeech != null ||
-                            entry.pronunciation != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              [entry.partOfSpeech, entry.pronunciation]
-                                  .where(
-                                      (item) => item != null && item.isNotEmpty)
-                                  .join(' · '),
-                              style: const TextStyle(
-                                  color: Color(0xff68717a), fontSize: 16),
-                            ),
-                          ),
-                        if (entry.definition != null) ...[
-                          const SizedBox(height: 18),
-                          Text(entry.definition!,
-                              style:
-                                  const TextStyle(fontSize: 18, height: 1.35)),
-                        ],
-                        if (entry.examples.isNotEmpty) ...[
-                          const SizedBox(height: 18),
-                          const Text('Examples',
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.w800)),
-                          ...entry.examples.map(
-                            (example) => Padding(
-                              padding: const EdgeInsets.only(top: 6),
-                              child: Text(example,
-                                  style: const TextStyle(fontSize: 17)),
-                            ),
-                          ),
-                        ],
-                        if (entry.antonyms.isNotEmpty) ...[
-                          const SizedBox(height: 18),
-                          Text(
-                            'Antonyms: ${entry.antonyms.join(', ')}',
-                            style: const TextStyle(fontSize: 17),
-                          ),
-                        ],
-                      ],
-                    ],
-                  ),
-                ),
-              ),
+            return WordDefinitionSheet(
+              api: widget.api,
+              word: word,
+              snapshot: snapshot,
             );
           },
         );
@@ -285,9 +213,6 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
             style: const TextStyle(
               fontSize: 30,
               height: 1.35,
-              decoration: TextDecoration.underline,
-              decorationColor: Color(0xfff3c400),
-              decorationThickness: 2,
             ),
           ),
         ),
@@ -319,7 +244,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
               ),
               const SizedBox(height: 22),
               const Text(
-                'Нажмите на любое слово, чтобы увидеть определение',
+                'Tap any word to see the definition',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: 22,
@@ -357,6 +282,319 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
             widget.onLanguageChanged(value);
             Navigator.of(context).pop();
           },
+        ),
+      ),
+    );
+  }
+}
+
+class ExplainScreen extends StatefulWidget {
+  const ExplainScreen({
+    required this.api,
+    required this.profile,
+    required this.messageId,
+    super.key,
+  });
+
+  final ApiClient api;
+  final UserProfile profile;
+  final int messageId;
+
+  @override
+  State<ExplainScreen> createState() => _ExplainScreenState();
+}
+
+class _ExplainScreenState extends State<ExplainScreen> {
+  late Future<ExplainResult> explanation;
+  final TextEditingController followUpController = TextEditingController();
+  final List<(String, String)> followUps = [];
+  bool sending = false;
+
+  @override
+  void initState() {
+    super.initState();
+    explanation = widget.api.getExplanation(widget.messageId);
+  }
+
+  @override
+  void dispose() {
+    followUpController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _sendFollowUp() async {
+    final question = followUpController.text.trim();
+    if (question.isEmpty || sending) return;
+    setState(() => sending = true);
+    try {
+      final answer =
+          await widget.api.askExplanationFollowUp(widget.messageId, question);
+      followUpController.clear();
+      setState(() => followUps.add((question, answer)));
+    } finally {
+      if (mounted) setState(() => sending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<ExplainResult>(
+      future: explanation,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.all(18),
+            child: Panel(child: LinearProgressIndicator()),
+          );
+        }
+        if (snapshot.hasError || snapshot.data == null) {
+          return const EmptyPanel(text: 'Could not load explanation.');
+        }
+        final data = snapshot.data!;
+        return Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Panel(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (data.chattyText != null &&
+                          data.chattyText!.isNotEmpty)
+                        _ExplainBubble(
+                          title: 'Chatty',
+                          text: data.chattyText!,
+                          color: const Color(0xffdddddf),
+                        ),
+                      const SizedBox(height: 12),
+                      _ExplainBubble(
+                        title: widget.profile.name ?? 'You',
+                        text: data.correctedText,
+                        color: const Color(0xffd9f5dc),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(data.explanation,
+                          style: const TextStyle(fontSize: 22, height: 1.35)),
+                      ...followUps.map(
+                        (item) => Padding(
+                          padding: const EdgeInsets.only(top: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _ExplainBubble(
+                                title: widget.profile.name ?? 'You',
+                                text: item.$1,
+                                color: const Color(0xffd9f5dc),
+                              ),
+                              const SizedBox(height: 10),
+                              _ExplainBubble(
+                                title: 'Chatty',
+                                text: item.$2,
+                                color: const Color(0xffdddddf),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: followUpController,
+                      decoration: InputDecoration(
+                        hintText: 'Ask a follow-up question...',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                      ),
+                      onSubmitted: (_) => _sendFollowUp(),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: const Color(0xffb9bdc4),
+                    child: IconButton(
+                      color: Colors.white,
+                      icon: const Icon(Icons.arrow_upward),
+                      onPressed: _sendFollowUp,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ExplainBubble extends StatelessWidget {
+  const _ExplainBubble({
+    required this.title,
+    required this.text,
+    required this.color,
+  });
+
+  final String title;
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title,
+              style:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          Text(text, style: const TextStyle(fontSize: 24, height: 1.35)),
+        ],
+      ),
+    );
+  }
+}
+
+class WordDefinitionSheet extends StatefulWidget {
+  const WordDefinitionSheet({
+    required this.api,
+    required this.word,
+    required this.snapshot,
+    super.key,
+  });
+
+  final ApiClient api;
+  final String word;
+  final AsyncSnapshot<WordDefinition> snapshot;
+
+  @override
+  State<WordDefinitionSheet> createState() => _WordDefinitionSheetState();
+}
+
+class _WordDefinitionSheetState extends State<WordDefinitionSheet> {
+  bool saved = false;
+
+  Future<void> _save(WordDefinition entry) async {
+    await widget.api.saveWord(entry);
+    if (mounted) setState(() => saved = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entry = widget.snapshot.data;
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 18,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 520),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(widget.word,
+                        style: const TextStyle(
+                            fontSize: 34, fontWeight: FontWeight.w800)),
+                  ),
+                  IconButton(
+                    iconSize: 34,
+                    icon: Icon(saved || (entry?.saved ?? false)
+                        ? Icons.bookmark
+                        : Icons.bookmark_border),
+                    onPressed: entry == null ? null : () => _save(entry),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              if (widget.snapshot.connectionState == ConnectionState.waiting)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: LinearProgressIndicator(),
+                )
+              else if (widget.snapshot.hasError)
+                const Text('Could not load this word.',
+                    style: TextStyle(fontSize: 18))
+              else if (entry != null) ...[
+                Row(
+                  children: [
+                    if (entry.pronunciation != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: const Color(0xff9da3ad)),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(entry.pronunciation!,
+                            style: const TextStyle(fontSize: 16)),
+                      ),
+                    const SizedBox(width: 12),
+                    if (entry.translation != null)
+                      Text(entry.translation!,
+                          style: const TextStyle(fontSize: 26)),
+                  ],
+                ),
+                if (entry.examples.isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  Text(entry.examples.first,
+                      style: const TextStyle(
+                          fontSize: 20, fontStyle: FontStyle.italic)),
+                ],
+                if (entry.partOfSpeech != null) ...[
+                  const SizedBox(height: 22),
+                  Text(entry.partOfSpeech!,
+                      style: const TextStyle(
+                          fontSize: 20, fontWeight: FontWeight.w800)),
+                ],
+                if (entry.definition != null) ...[
+                  const SizedBox(height: 12),
+                  Text('• ${entry.definition!}',
+                      style: const TextStyle(fontSize: 20, height: 1.3)),
+                ],
+                if (entry.examples.length > 1) ...[
+                  const SizedBox(height: 12),
+                  ...entry.examples.skip(1).map(
+                        (example) => Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(example,
+                              style: const TextStyle(
+                                  fontSize: 18,
+                                  height: 1.3,
+                                  color: Color(0xff666666),
+                                  fontStyle: FontStyle.italic)),
+                        ),
+                      ),
+                ],
+              ],
+            ],
+          ),
         ),
       ),
     );
@@ -653,6 +891,34 @@ class _SavedScreenState extends State<SavedScreen> {
     words = widget.api.getSavedWords();
   }
 
+  void _showSavedWord(SavedWord word) {
+    final entry = WordDefinition(
+      word: word.word,
+      translation: word.translation,
+      definition: word.definition,
+      examples: word.examples,
+      partOfSpeech: word.partOfSpeech,
+      pronunciation: word.pronunciation,
+      antonyms: word.antonyms,
+      saved: true,
+    );
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      enableDrag: false,
+      isDismissible: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => WordDefinitionSheet(
+        api: widget.api,
+        word: word.word,
+        snapshot: AsyncSnapshot.withData(ConnectionState.done, entry),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<SavedWord>>(
@@ -676,20 +942,23 @@ class _SavedScreenState extends State<SavedScreen> {
           separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final word = rows[index];
-            return Panel(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(word.word,
-                      style: const TextStyle(
-                          fontSize: 26, fontWeight: FontWeight.w800)),
-                  if (word.translation != null)
-                    Text(word.translation!,
-                        style: const TextStyle(fontSize: 18)),
-                  if (word.definition != null)
-                    Text(word.definition!,
-                        style: const TextStyle(color: Color(0xff68717a))),
-                ],
+            return GestureDetector(
+              onTap: () => _showSavedWord(word),
+              child: Panel(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(word.word,
+                        style: const TextStyle(
+                            fontSize: 26, fontWeight: FontWeight.w800)),
+                    if (word.translation != null)
+                      Text(word.translation!,
+                          style: const TextStyle(fontSize: 18)),
+                    if (word.definition != null)
+                      Text(word.definition!,
+                          style: const TextStyle(color: Color(0xff68717a))),
+                  ],
+                ),
               ),
             );
           },

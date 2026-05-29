@@ -208,3 +208,26 @@ class PronunciationScore {
     );
   }
 }
+
+class ExplainResult {
+  const ExplainResult({
+    required this.originalText,
+    required this.correctedText,
+    required this.explanation,
+    this.chattyText,
+  });
+
+  final String originalText;
+  final String correctedText;
+  final String explanation;
+  final String? chattyText;
+
+  factory ExplainResult.fromJson(Map<String, dynamic> json) {
+    return ExplainResult(
+      originalText: json['original_text'] as String? ?? '',
+      correctedText: json['corrected_text'] as String? ?? '',
+      explanation: json['explanation'] as String? ?? '',
+      chattyText: json['chatty_text'] as String?,
+    );
+  }
+}

@@ -65,7 +65,8 @@ async def generate_conversation_help(user: User, user_text: str, reply_text: str
     system_prompt = (
         "You are an English speaking coach. Return short plain text with three sections: "
         "Beginning, Useful words and structures, Example complete answer. Help the learner "
-        "continue the conversation. Use simple English, bullets, and one concise sample answer."
+        "answer Chatty's latest follow-up question. Use simple English, bullets, and one "
+        "concise sample answer."
     )
     data = await openai_service.chat_text(
         system_prompt,
@@ -82,6 +83,32 @@ async def generate_conversation_help(user: User, user_text: str, reply_text: str
             '"These days, I am busy, but I feel good. I study every day, and I relax by watching movies."'
         )
     return HelpResponse(text=data)
+
+
+async def answer_explanation_follow_up(
+    user: User,
+    original_text: str,
+    corrected_text: str,
+    explanation: str,
+    question: str,
+) -> str:
+    system_prompt = (
+        "You are Chatty, an English tutor. Answer follow-up questions about an English "
+        "correction. Be brief, friendly, and clear. Use the learner's native language "
+        "when helpful for grammar explanation."
+    )
+    answer = await openai_service.chat_text(
+        system_prompt,
+        (
+            f"Learner level: {user.english_level}\n"
+            f"Native language: {user.native_language}\n"
+            f"Original: {original_text}\n"
+            f"Corrected: {corrected_text}\n"
+            f"Explanation: {explanation}\n"
+            f"Follow-up question: {question}"
+        ),
+    )
+    return answer or "Good question. This correction makes the sentence more natural and clear."
 
 
 async def explain_mistake(user: User, original_text: str, corrected_text: str | None) -> ExplainResponse:
