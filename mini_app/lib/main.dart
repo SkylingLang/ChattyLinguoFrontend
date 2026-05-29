@@ -44,7 +44,7 @@ class _MiniAppHomeState extends State<MiniAppHome> {
     return raw == null ? null : int.tryParse(raw);
   }
 
-  String get mode => _launchParam('mode') ?? '';
+  String get launchView => _launchParam('view') ?? _launchParam('mode') ?? '';
 
   String? _launchParam(String key) {
     final queryValue = Uri.base.queryParameters[key];
@@ -91,10 +91,10 @@ class _MiniAppHomeState extends State<MiniAppHome> {
                 }
                 final currentMessageId = messageId;
                 if (currentMessageId != null) {
-                  if (mode == 'score') {
+                  if (launchView == 'score') {
                     return ScoreScreen(api: api, messageId: currentMessageId);
                   }
-                  if (mode == 'explain') {
+                  if (launchView == 'explain') {
                     return ExplainScreen(
                       api: api,
                       profile: currentProfile,

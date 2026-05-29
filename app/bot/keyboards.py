@@ -36,7 +36,7 @@ def _mini_app_url(**params: object) -> str:
         return url
     parts = urlsplit(url)
     existing_params = dict(parse_qsl(parts.query, keep_blank_values=True))
-    for stale_key in ("mode", "message_id", "telegram_user_id"):
+    for stale_key in ("view", "mode", "message_id", "telegram_user_id"):
         existing_params.pop(stale_key, None)
     existing_params.update({key: str(value) for key, value in params.items() if value is not None})
     return urlunsplit(parts._replace(query=urlencode(existing_params)))
@@ -55,6 +55,7 @@ def response_actions(
             text="Explain",
             web_app=WebAppInfo(
                 url=_mini_app_url(
+                    view="explain",
                     mode="explain",
                     message_id=message_id,
                     telegram_user_id=telegram_user_id,
@@ -70,6 +71,7 @@ def response_actions(
                 text="Score",
                 web_app=WebAppInfo(
                     url=_mini_app_url(
+                        view="score",
                         mode="score",
                         message_id=message_id,
                         telegram_user_id=telegram_user_id,
@@ -95,6 +97,7 @@ def voice_response_actions(
                     text="Text",
                     web_app=WebAppInfo(
                         url=_mini_app_url(
+                            view="text",
                             mode="text",
                             message_id=message_id,
                             telegram_user_id=telegram_user_id,
@@ -115,6 +118,7 @@ def analysis_button(message_id: int, telegram_user_id: int) -> InlineKeyboardMar
                     text="Open analysis",
                     web_app=WebAppInfo(
                         url=_mini_app_url(
+                            view="score",
                             mode="score",
                             message_id=message_id,
                             telegram_user_id=telegram_user_id,
