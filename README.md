@@ -74,7 +74,7 @@ app/
 mini_app/
   lib/              Flutter source
   web/              Flutter web shell
-  vercel.json       Vercel build config
+  netlify.toml      Netlify build config
 ```
 
 ## Next production steps

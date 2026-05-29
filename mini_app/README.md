@@ -27,15 +27,15 @@ Output:
 build/web
 ```
 
-## Vercel
+## Netlify
 
 Use these settings:
 
 ```text
-Root Directory: mini_app
+Base directory: mini_app
 Framework Preset: Other
-Build Command: use project vercel.json
-Output Directory: build/web
+Build command: bash netlify_build.sh
+Publish directory: build/web
 ```
 
 Environment variable:
@@ -44,11 +44,10 @@ Environment variable:
 API_BASE_URL=https://your-render-backend.onrender.com
 ```
 
-After deploy, put the Vercel URL into backend env:
+After deploy, put the Netlify URL into backend env:
 
 ```env
-MINI_APP_URL=https://your-mini-app.vercel.app
+MINI_APP_URL=https://your-mini-app.netlify.app
 ```
 
 Then set the same URL in BotFather as the bot Menu Button.
-
