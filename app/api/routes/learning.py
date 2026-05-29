@@ -7,7 +7,13 @@ from app.models.user import User
 from app.repositories import learning as learning_repo
 from app.repositories import words as words_repo
 from app.repositories.messages import get_message, get_previous_user_message
-from app.schemas.message import ExplainResponse, MessageOut, PronunciationScoreOut
+from app.schemas.message import (
+    ExplainResponse,
+    FollowUpRequest,
+    FollowUpResponse,
+    MessageOut,
+    PronunciationScoreOut,
+)
 from app.schemas.translation import TranslateRequest, TranslateResponse
 from app.schemas.word import SaveWordRequest, SavedWordOut, WordDefinition
 from app.services import tutor
@@ -56,6 +62,53 @@ async def message_score(
     )
     await session.commit()
     return payload
+
+
+@router.get("/messages/{message_id}/explain", response_model=ExplainResponse)
+async def message_explain(
+    message_id: int,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db_session),
+) -> ExplainResponse:
+    assistant_message = await get_message(session, user.id, message_id)
+    user_message = await get_previous_user_message(session, user.id, message_id)
+    if not assistant_message or not user_message:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    original = user_message.text or user_message.transcript or ""
+    correction = assistant_message.correction
+    if not correction or correction.strip().lower() == original.strip().lower():
+        raise HTTPException(status_code=404, detail="Correction not found")
+
+    payload = await tutor.explain_mistake(user, original, correction)
+    payload.chatty_text = assistant_message.text
+    await learning_repo.save_grammar_explanation(session, user.id, user_message.id, payload)
+    await session.commit()
+    return payload
+
+
+@router.post("/messages/{message_id}/explain/follow-up", response_model=FollowUpResponse)
+async def explain_follow_up(
+    message_id: int,
+    payload: FollowUpRequest,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db_session),
+) -> FollowUpResponse:
+    assistant_message = await get_message(session, user.id, message_id)
+    user_message = await get_previous_user_message(session, user.id, message_id)
+    if not assistant_message or not user_message or not assistant_message.correction:
+        raise HTTPException(status_code=404, detail="Correction not found")
+
+    original = user_message.text or user_message.transcript or ""
+    explanation = await tutor.explain_mistake(user, original, assistant_message.correction)
+    answer = await tutor.answer_explanation_follow_up(
+        user,
+        original,
+        assistant_message.correction,
+        explanation.explanation,
+        payload.question,
+    )
+    return FollowUpResponse(answer=answer)
 
 
 @router.post("/translate", response_model=TranslateResponse)

@@ -94,6 +94,45 @@ class ApiClient {
         jsonDecode(response.body) as Map<String, dynamic>);
   }
 
+  Future<ExplainResult> getExplanation(int messageId) async {
+    final response = await http.get(
+        _uri('/api/learning/messages/$messageId/explain'),
+        headers: _headers);
+    _throwIfBad(response);
+    return ExplainResult.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
+  Future<String> askExplanationFollowUp(int messageId, String question) async {
+    final response = await http.post(
+      _uri('/api/learning/messages/$messageId/explain/follow-up'),
+      headers: {'Content-Type': 'application/json', ..._headers},
+      body: jsonEncode({'question': question}),
+    );
+    _throwIfBad(response);
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    return body['answer'] as String? ?? '';
+  }
+
+  Future<SavedWord> saveWord(WordDefinition entry) async {
+    final response = await http.post(
+      _uri('/api/learning/saved-words'),
+      headers: {'Content-Type': 'application/json', ..._headers},
+      body: jsonEncode({
+        'word': entry.word,
+        'translation': entry.translation,
+        'definition': entry.definition,
+        'examples': entry.examples,
+        'part_of_speech': entry.partOfSpeech,
+        'pronunciation': entry.pronunciation,
+        'antonyms': entry.antonyms,
+      }),
+    );
+    _throwIfBad(response);
+    return SavedWord.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
   Future<UserProfile> updateLanguage(String language) {
     return _patchProfile(
         '/api/profile/language', {'native_language': language});

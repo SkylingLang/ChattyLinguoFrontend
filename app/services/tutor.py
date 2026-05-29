@@ -84,6 +84,32 @@ async def generate_conversation_help(user: User, user_text: str, reply_text: str
     return HelpResponse(text=data)
 
 
+async def answer_explanation_follow_up(
+    user: User,
+    original_text: str,
+    corrected_text: str,
+    explanation: str,
+    question: str,
+) -> str:
+    system_prompt = (
+        "You are Chatty, an English tutor. Answer follow-up questions about an English "
+        "correction. Be brief, friendly, and clear. Use the learner's native language "
+        "when helpful for grammar explanation."
+    )
+    answer = await openai_service.chat_text(
+        system_prompt,
+        (
+            f"Learner level: {user.english_level}\n"
+            f"Native language: {user.native_language}\n"
+            f"Original: {original_text}\n"
+            f"Corrected: {corrected_text}\n"
+            f"Explanation: {explanation}\n"
+            f"Follow-up question: {question}"
+        ),
+    )
+    return answer or "Good question. The correction makes the sentence more natural and grammatically clear."
+
+
 async def explain_mistake(user: User, original_text: str, corrected_text: str | None) -> ExplainResponse:
     system_prompt = (
         "You explain English corrections clearly and briefly. Return JSON with "

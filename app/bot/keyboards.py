@@ -43,14 +43,38 @@ def _mini_app_url(**params: object) -> str:
 def response_actions(
     message_id: int | None = None,
     *,
+    telegram_user_id: int | None = None,
+    has_correction: bool = False,
     allow_score: bool = False,
-    score_checked: bool = False,
 ) -> InlineKeyboardMarkup:
     suffix = f":{message_id}" if message_id else ""
-    buttons = [InlineKeyboardButton(text="Explain", callback_data=f"explain{suffix}")]
+    if has_correction:
+        explain_button = InlineKeyboardButton(
+            text="Explain",
+            web_app=WebAppInfo(
+                url=_mini_app_url(
+                    mode="explain",
+                    message_id=message_id,
+                    telegram_user_id=telegram_user_id,
+                )
+            ),
+        )
+    else:
+        explain_button = InlineKeyboardButton(text="Explain", callback_data=f"explain{suffix}")
+    buttons = [explain_button]
     if allow_score:
-        label = "Score ✅" if score_checked else "Score"
-        buttons.append(InlineKeyboardButton(text=label, callback_data=f"score{suffix}"))
+        buttons.append(
+            InlineKeyboardButton(
+                text="Score",
+                web_app=WebAppInfo(
+                    url=_mini_app_url(
+                        mode="score",
+                        message_id=message_id,
+                        telegram_user_id=telegram_user_id,
+                    )
+                ),
+            )
+        )
     return InlineKeyboardMarkup(inline_keyboard=[buttons])
 
 
