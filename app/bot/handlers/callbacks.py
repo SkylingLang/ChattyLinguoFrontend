@@ -130,6 +130,8 @@ async def help_callback(callback: CallbackQuery) -> None:
         await callback.message.edit_reply_markup(
             reply_markup=voice_response_actions(message_id, callback.from_user.id, help_checked=True)
         )
-    quote = f"<blockquote>{escape(assistant_message.text)}</blockquote>\n\n" if assistant_message.text else ""
-    await callback.message.answer(f"{quote}{escape(payload.text)}", parse_mode=ParseMode.HTML)
+    await callback.message.answer(
+        f"<blockquote>{escape(payload.text)}</blockquote>",
+        parse_mode=ParseMode.HTML,
+    )
     await callback.answer()

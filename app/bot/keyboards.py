@@ -1,4 +1,4 @@
-from urllib.parse import urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 
@@ -35,9 +35,11 @@ def _mini_app_url(**params: object) -> str:
     if not params:
         return url
     parts = urlsplit(url)
-    query = urlencode({key: value for key, value in params.items() if value is not None})
-    separator = "&" if parts.query else ""
-    return urlunsplit(parts._replace(query=f"{parts.query}{separator}{query}"))
+    existing_params = dict(parse_qsl(parts.query, keep_blank_values=True))
+    for stale_key in ("mode", "message_id", "telegram_user_id"):
+        existing_params.pop(stale_key, None)
+    existing_params.update({key: str(value) for key, value in params.items() if value is not None})
+    return urlunsplit(parts._replace(query=urlencode(existing_params)))
 
 
 def response_actions(

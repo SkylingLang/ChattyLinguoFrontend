@@ -40,11 +40,22 @@ class _MiniAppHomeState extends State<MiniAppHome> {
   String? error;
 
   int? get messageId {
-    final raw = Uri.base.queryParameters['message_id'];
+    final raw = _launchParam('message_id');
     return raw == null ? null : int.tryParse(raw);
   }
 
-  String get mode => Uri.base.queryParameters['mode'] ?? '';
+  String get mode => _launchParam('mode') ?? '';
+
+  String? _launchParam(String key) {
+    final queryValue = Uri.base.queryParameters[key];
+    if (queryValue != null) return queryValue;
+
+    final fragment = Uri.base.fragment;
+    if (fragment.isEmpty) return null;
+    final questionIndex = fragment.indexOf('?');
+    if (questionIndex < 0 || questionIndex == fragment.length - 1) return null;
+    return Uri.splitQueryString(fragment.substring(questionIndex + 1))[key];
+  }
 
   @override
   void initState() {
