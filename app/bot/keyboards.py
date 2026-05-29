@@ -48,37 +48,16 @@ def response_actions(
     telegram_user_id: int | None = None,
     has_correction: bool = False,
     allow_score: bool = False,
+    explain_checked: bool = False,
+    score_checked: bool = False,
 ) -> InlineKeyboardMarkup:
     suffix = f":{message_id}" if message_id else ""
-    if has_correction:
-        explain_button = InlineKeyboardButton(
-            text="Explain",
-            web_app=WebAppInfo(
-                url=_mini_app_url(
-                    view="explain",
-                    mode="explain",
-                    message_id=message_id,
-                    telegram_user_id=telegram_user_id,
-                )
-            ),
-        )
-    else:
-        explain_button = InlineKeyboardButton(text="Explain", callback_data=f"explain{suffix}")
+    explain_label = "Explain ✅" if explain_checked else "Explain"
+    explain_button = InlineKeyboardButton(text=explain_label, callback_data=f"explain{suffix}")
     buttons = [explain_button]
     if allow_score:
-        buttons.append(
-            InlineKeyboardButton(
-                text="Score",
-                web_app=WebAppInfo(
-                    url=_mini_app_url(
-                        view="score",
-                        mode="score",
-                        message_id=message_id,
-                        telegram_user_id=telegram_user_id,
-                    )
-                ),
-            )
-        )
+        score_label = "Score ✅" if score_checked else "Score"
+        buttons.append(InlineKeyboardButton(text=score_label, callback_data=f"score{suffix}"))
     return InlineKeyboardMarkup(inline_keyboard=[buttons])
 
 
@@ -120,6 +99,26 @@ def analysis_button(message_id: int, telegram_user_id: int) -> InlineKeyboardMar
                         url=_mini_app_url(
                             view="score",
                             mode="score",
+                            message_id=message_id,
+                            telegram_user_id=telegram_user_id,
+                        )
+                    ),
+                )
+            ]
+        ]
+    )
+
+
+def explanation_button(message_id: int, telegram_user_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Open explanation",
+                    web_app=WebAppInfo(
+                        url=_mini_app_url(
+                            view="explain",
+                            mode="explain",
                             message_id=message_id,
                             telegram_user_id=telegram_user_id,
                         )

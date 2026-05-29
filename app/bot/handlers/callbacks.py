@@ -5,16 +5,24 @@ from aiogram.enums import ParseMode
 from aiogram.types import CallbackQuery
 
 from app.bot.keyboards import (
+    analysis_button,
+    explanation_button,
     level_keyboard,
+    response_actions,
     topics_keyboard,
     voice_keyboard,
     voice_response_actions,
 )
 from app.db.session import AsyncSessionLocal
-from app.repositories.learning import save_grammar_explanation
+from app.models.enums import MessageType
+from app.repositories.learning import (
+    get_latest_pronunciation_score,
+    save_grammar_explanation,
+    save_pronunciation_score,
+)
 from app.repositories.messages import get_message, get_previous_user_message
 from app.repositories.users import register_user
-from app.services.tutor import explain_mistake, generate_conversation_help
+from app.services.tutor import explain_mistake, generate_conversation_help, score_pronunciation
 
 router = Router()
 
@@ -102,7 +110,61 @@ async def explain_callback(callback: CallbackQuery) -> None:
         await save_grammar_explanation(session, user.id, user_message.id, payload)
         await session.commit()
 
-    await callback.message.answer(payload.explanation)
+    if callback.message:
+        await callback.message.edit_reply_markup(
+            reply_markup=response_actions(
+                message_id,
+                telegram_user_id=callback.from_user.id,
+                has_correction=True,
+                explain_checked=True,
+            )
+        )
+        await callback.message.answer(
+            "Explanation is ready.",
+            reply_markup=explanation_button(message_id, callback.from_user.id),
+        )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("score"))
+async def score_callback(callback: CallbackQuery) -> None:
+    message_id = _callback_message_id(callback.data)
+    if not message_id:
+        await callback.answer("I could not find this voice message.", show_alert=True)
+        return
+
+    async with AsyncSessionLocal() as session:
+        user = await register_user(
+            session, callback.from_user.id, callback.from_user.full_name, callback.from_user.username
+        )
+        assistant_message = await get_message(session, user.id, message_id)
+        user_message = await get_previous_user_message(session, user.id, message_id)
+        if not assistant_message or not user_message or user_message.type != MessageType.VOICE.value:
+            await callback.answer("Score is available only for your voice messages.", show_alert=True)
+            return
+
+        saved = await get_latest_pronunciation_score(session, user.id, user_message.id)
+        if not saved:
+            payload = await score_pronunciation(user, user_message.transcript or "")
+            await save_pronunciation_score(
+                session, user.id, user_message.id, user_message.audio_file_id, payload
+            )
+            await session.commit()
+
+    if callback.message:
+        await callback.message.edit_reply_markup(
+            reply_markup=response_actions(
+                message_id,
+                telegram_user_id=callback.from_user.id,
+                has_correction=bool(assistant_message.correction),
+                allow_score=True,
+                score_checked=True,
+            )
+        )
+        await callback.message.answer(
+            "Pronunciation analysis is ready.",
+            reply_markup=analysis_button(message_id, callback.from_user.id),
+        )
     await callback.answer()
 
 
