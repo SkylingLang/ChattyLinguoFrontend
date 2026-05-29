@@ -30,8 +30,14 @@ TOPIC_OPTIONS = [
 ]
 
 
-def _mini_app_url(**params: object) -> str:
+def _mini_app_url(*, route: str | None = None, **params: object) -> str:
     url = str(settings.mini_app_url)
+    if route:
+        parts = urlsplit(url)
+        base = urlunsplit(parts._replace(query="", fragment=""))
+        query = urlencode({key: value for key, value in params.items() if value is not None})
+        return f"{base}#{route}" + (f"?{query}" if query else "")
+
     if not params:
         return url
     parts = urlsplit(url)
@@ -76,6 +82,7 @@ def voice_response_actions(
                     text="Text",
                     web_app=WebAppInfo(
                         url=_mini_app_url(
+                            route="text",
                             view="text",
                             mode="text",
                             message_id=message_id,
@@ -97,6 +104,7 @@ def analysis_button(message_id: int, telegram_user_id: int) -> InlineKeyboardMar
                     text="Open analysis",
                     web_app=WebAppInfo(
                         url=_mini_app_url(
+                            route="score",
                             view="score",
                             mode="score",
                             message_id=message_id,
@@ -117,6 +125,7 @@ def explanation_button(message_id: int, telegram_user_id: int) -> InlineKeyboard
                     text="Open explanation",
                     web_app=WebAppInfo(
                         url=_mini_app_url(
+                            route="explain",
                             view="explain",
                             mode="explain",
                             message_id=message_id,

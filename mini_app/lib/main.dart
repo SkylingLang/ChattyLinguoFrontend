@@ -46,6 +46,12 @@ class _MiniAppHomeState extends State<MiniAppHome> {
 
   String get launchView => _launchParam('view') ?? _launchParam('mode') ?? '';
 
+  String get launchRoute {
+    final fragment = Uri.base.fragment;
+    if (fragment.isEmpty) return '';
+    return fragment.split('?').first.replaceAll('/', '');
+  }
+
   String? _launchParam(String key) {
     final queryValue = Uri.base.queryParameters[key];
     if (queryValue != null) return queryValue;
@@ -91,10 +97,12 @@ class _MiniAppHomeState extends State<MiniAppHome> {
                 }
                 final currentMessageId = messageId;
                 if (currentMessageId != null) {
-                  if (launchView == 'score') {
+                  final route =
+                      launchRoute.isNotEmpty ? launchRoute : launchView;
+                  if (route == 'score') {
                     return ScoreScreen(api: api, messageId: currentMessageId);
                   }
-                  if (launchView == 'explain') {
+                  if (route == 'explain') {
                     return ExplainScreen(
                       api: api,
                       profile: currentProfile,
