@@ -40,18 +40,28 @@ def _mini_app_url(**params: object) -> str:
     return urlunsplit(parts._replace(query=f"{parts.query}{separator}{query}"))
 
 
-def response_actions(message_id: int | None = None, *, allow_score: bool = False) -> InlineKeyboardMarkup:
+def response_actions(
+    message_id: int | None = None,
+    *,
+    allow_score: bool = False,
+    score_checked: bool = False,
+) -> InlineKeyboardMarkup:
     suffix = f":{message_id}" if message_id else ""
     buttons = [InlineKeyboardButton(text="Explain", callback_data=f"explain{suffix}")]
     if allow_score:
-        buttons.append(InlineKeyboardButton(text="Score ✅", callback_data=f"score{suffix}"))
+        label = "Score ✅" if score_checked else "Score"
+        buttons.append(InlineKeyboardButton(text=label, callback_data=f"score{suffix}"))
     return InlineKeyboardMarkup(inline_keyboard=[buttons])
 
 
 def voice_response_actions(
-    message_id: int | None = None, telegram_user_id: int | None = None
+    message_id: int | None = None,
+    telegram_user_id: int | None = None,
+    *,
+    help_checked: bool = False,
 ) -> InlineKeyboardMarkup:
     suffix = f":{message_id}" if message_id else ""
+    help_label = "Help ✅" if help_checked else "Help"
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -65,7 +75,26 @@ def voice_response_actions(
                         )
                     ),
                 ),
-                InlineKeyboardButton(text="Help ✅", callback_data=f"help{suffix}"),
+                InlineKeyboardButton(text=help_label, callback_data=f"help{suffix}"),
+            ]
+        ]
+    )
+
+
+def analysis_button(message_id: int, telegram_user_id: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Open analysis",
+                    web_app=WebAppInfo(
+                        url=_mini_app_url(
+                            mode="score",
+                            message_id=message_id,
+                            telegram_user_id=telegram_user_id,
+                        )
+                    ),
+                )
             ]
         ]
     )

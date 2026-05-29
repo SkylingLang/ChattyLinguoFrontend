@@ -44,6 +44,8 @@ class _MiniAppHomeState extends State<MiniAppHome> {
     return raw == null ? null : int.tryParse(raw);
   }
 
+  String get mode => Uri.base.queryParameters['mode'] ?? '';
+
   @override
   void initState() {
     super.initState();
@@ -78,6 +80,9 @@ class _MiniAppHomeState extends State<MiniAppHome> {
                 }
                 final currentMessageId = messageId;
                 if (currentMessageId != null) {
+                  if (mode == 'score') {
+                    return ScoreScreen(api: api, messageId: currentMessageId);
+                  }
                   return TranscriptScreen(
                     api: api,
                     profile: currentProfile,
@@ -354,6 +359,115 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
           },
         ),
       ),
+    );
+  }
+}
+
+class ScoreScreen extends StatefulWidget {
+  const ScoreScreen({required this.api, required this.messageId, super.key});
+
+  final ApiClient api;
+  final int messageId;
+
+  @override
+  State<ScoreScreen> createState() => _ScoreScreenState();
+}
+
+class _ScoreScreenState extends State<ScoreScreen> {
+  late Future<PronunciationScore> score;
+
+  @override
+  void initState() {
+    super.initState();
+    score = widget.api.getScore(widget.messageId);
+  }
+
+  Color _barColor(int value) {
+    if (value >= 75) return const Color(0xff5fbd51);
+    if (value >= 50) return const Color(0xfff2c94c);
+    return const Color(0xffeb5757);
+  }
+
+  Widget _metric(String label, int value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 22)),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(999),
+          child: LinearProgressIndicator(
+            minHeight: 12,
+            value: value.clamp(0, 100) / 100,
+            backgroundColor: Colors.white,
+            valueColor: AlwaysStoppedAnimation<Color>(_barColor(value)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<PronunciationScore>(
+      future: score,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.all(18),
+            child: Panel(child: LinearProgressIndicator()),
+          );
+        }
+        if (snapshot.hasError || snapshot.data == null) {
+          return const EmptyPanel(
+              text: 'Could not load pronunciation analysis.');
+        }
+        final data = snapshot.data!;
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text('Pronunciation Analysis',
+                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 20),
+              Panel(
+                child: GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 18,
+                  childAspectRatio: 3.2,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    _metric('Accuracy ⓘ', data.accuracyScore),
+                    _metric('Fluency ⓘ', data.fluencyScore),
+                    _metric('Prosody ⓘ', data.prosodyScore),
+                    _metric('Grammar ⓘ', data.grammarScore),
+                    _metric('Vocabulary ⓘ', data.vocabularyScore),
+                    _metric('Topic ⓘ', data.topicScore),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 28),
+              const Text('Transcript',
+                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 14),
+              Panel(
+                child: Text(data.transcript,
+                    style: const TextStyle(fontSize: 24, height: 1.35)),
+              ),
+              if (data.feedback != null && data.feedback!.isNotEmpty) ...[
+                const SizedBox(height: 18),
+                Panel(
+                  child: Text(data.feedback!,
+                      style: const TextStyle(fontSize: 18, height: 1.35)),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }

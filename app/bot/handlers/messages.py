@@ -1,3 +1,4 @@
+from difflib import SequenceMatcher
 from html import escape
 
 from aiogram import F, Router
@@ -18,8 +19,27 @@ router = Router()
 def _correction_text(original: str, correction: str | None) -> str:
     cleaned_correction = correction.strip() if correction else None
     if cleaned_correction and cleaned_correction.lower() != original.strip().lower():
-        return f"💡 <s>{escape(original)}</s>\n{escape(cleaned_correction)}"
+        return f"💡 {_correction_diff(original, cleaned_correction)}"
     return f"✅ {escape(original)}"
+
+
+def _correction_diff(original: str, correction: str) -> str:
+    original_words = original.split()
+    correction_words = correction.split()
+    matcher = SequenceMatcher(a=original_words, b=correction_words)
+    parts: list[str] = []
+    for tag, start_a, end_a, start_b, end_b in matcher.get_opcodes():
+        old = " ".join(original_words[start_a:end_a])
+        new = " ".join(correction_words[start_b:end_b])
+        if tag == "equal":
+            parts.append(escape(old))
+        elif tag == "replace":
+            parts.append(f"<s>{escape(old)}</s> {escape(new)}")
+        elif tag == "delete":
+            parts.append(f"<s>{escape(old)}</s>")
+        elif tag == "insert":
+            parts.append(escape(new))
+    return " ".join(part for part in parts if part)
 
 
 @router.message(F.text)

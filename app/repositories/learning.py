@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.learning import GrammarExplanation, PronunciationScore
@@ -46,3 +47,17 @@ async def save_pronunciation_score(
     await session.flush()
     return row
 
+
+async def get_latest_pronunciation_score(
+    session: AsyncSession, user_id: int, message_id: int | None
+) -> PronunciationScore | None:
+    result = await session.execute(
+        select(PronunciationScore)
+        .where(
+            PronunciationScore.user_id == user_id,
+            PronunciationScore.message_id == message_id,
+        )
+        .order_by(PronunciationScore.created_at.desc(), PronunciationScore.id.desc())
+        .limit(1)
+    )
+    return result.scalar_one_or_none()

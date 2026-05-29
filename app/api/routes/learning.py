@@ -6,7 +6,7 @@ from app.db.session import get_db_session
 from app.models.user import User
 from app.repositories import learning as learning_repo
 from app.repositories import words as words_repo
-from app.repositories.messages import get_message
+from app.repositories.messages import get_message, get_previous_user_message
 from app.schemas.message import ExplainResponse, MessageOut, PronunciationScoreOut
 from app.schemas.translation import TranslateRequest, TranslateResponse
 from app.schemas.word import SaveWordRequest, SavedWordOut, WordDefinition
@@ -25,6 +25,37 @@ async def message_detail(
     if not message:
         raise HTTPException(status_code=404, detail="Message not found")
     return message
+
+
+@router.get("/messages/{message_id}/score", response_model=PronunciationScoreOut)
+async def message_score(
+    message_id: int,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db_session),
+) -> PronunciationScoreOut:
+    user_message = await get_previous_user_message(session, user.id, message_id)
+    if not user_message or not user_message.transcript:
+        raise HTTPException(status_code=404, detail="Voice message not found")
+
+    saved = await learning_repo.get_latest_pronunciation_score(session, user.id, user_message.id)
+    if saved:
+        return PronunciationScoreOut(
+            transcript=saved.transcript,
+            accuracy_score=saved.accuracy_score,
+            fluency_score=saved.fluency_score,
+            prosody_score=saved.prosody_score,
+            grammar_score=saved.grammar_score,
+            vocabulary_score=saved.vocabulary_score,
+            topic_score=saved.topic_score,
+            feedback=saved.feedback,
+        )
+
+    payload = await tutor.score_pronunciation(user, user_message.transcript)
+    await learning_repo.save_pronunciation_score(
+        session, user.id, user_message.id, user_message.audio_file_id, payload
+    )
+    await session.commit()
+    return payload
 
 
 @router.post("/translate", response_model=TranslateResponse)

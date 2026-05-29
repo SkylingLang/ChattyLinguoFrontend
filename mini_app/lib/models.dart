@@ -173,3 +173,38 @@ class WordDefinition {
     );
   }
 }
+
+class PronunciationScore {
+  const PronunciationScore({
+    required this.transcript,
+    required this.accuracyScore,
+    required this.fluencyScore,
+    required this.prosodyScore,
+    required this.grammarScore,
+    required this.vocabularyScore,
+    required this.topicScore,
+    this.feedback,
+  });
+
+  final String transcript;
+  final int accuracyScore;
+  final int fluencyScore;
+  final int prosodyScore;
+  final int grammarScore;
+  final int vocabularyScore;
+  final int topicScore;
+  final String? feedback;
+
+  factory PronunciationScore.fromJson(Map<String, dynamic> json) {
+    return PronunciationScore(
+      transcript: json['transcript'] as String? ?? '',
+      accuracyScore: json['accuracy_score'] as int? ?? 0,
+      fluencyScore: json['fluency_score'] as int? ?? 0,
+      prosodyScore: json['prosody_score'] as int? ?? 0,
+      grammarScore: json['grammar_score'] as int? ?? 0,
+      vocabularyScore: json['vocabulary_score'] as int? ?? 0,
+      topicScore: json['topic_score'] as int? ?? 0,
+      feedback: json['feedback'] as String?,
+    );
+  }
+}

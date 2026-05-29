@@ -1,10 +1,24 @@
+from html import escape
+
 from aiogram import F, Router
+from aiogram.enums import ParseMode
 from aiogram.types import CallbackQuery
 
-from app.bot.keyboards import level_keyboard, topics_keyboard, voice_keyboard
+from app.bot.keyboards import (
+    analysis_button,
+    level_keyboard,
+    response_actions,
+    topics_keyboard,
+    voice_keyboard,
+    voice_response_actions,
+)
 from app.db.session import AsyncSessionLocal
 from app.models.enums import MessageType
-from app.repositories.learning import save_grammar_explanation, save_pronunciation_score
+from app.repositories.learning import (
+    get_latest_pronunciation_score,
+    save_grammar_explanation,
+    save_pronunciation_score,
+)
 from app.repositories.messages import get_message, get_previous_user_message
 from app.repositories.users import register_user
 from app.services.tutor import explain_mistake, generate_conversation_help, score_pronunciation
@@ -88,13 +102,14 @@ async def explain_callback(callback: CallbackQuery) -> None:
             return
 
         original = user_message.text or user_message.transcript or ""
+        if not assistant_message.correction or assistant_message.correction.strip().lower() == original.strip().lower():
+            await callback.answer("No correction needed.", show_alert=False)
+            return
         payload = await explain_mistake(user, original, assistant_message.correction)
         await save_grammar_explanation(session, user.id, user_message.id, payload)
         await session.commit()
 
-    await callback.message.answer(
-        f"Original: {payload.original_text}\nCorrect: {payload.corrected_text}\n\n{payload.explanation}"
-    )
+    await callback.message.answer(payload.explanation)
     await callback.answer()
 
 
@@ -115,23 +130,22 @@ async def score_callback(callback: CallbackQuery) -> None:
             return
 
         transcript = user_message.transcript or ""
-        payload = await score_pronunciation(user, transcript)
-        await save_pronunciation_score(
-            session, user.id, user_message.id, user_message.audio_file_id, payload
-        )
-        await session.commit()
+        saved = await get_latest_pronunciation_score(session, user.id, user_message.id)
+        if not saved:
+            payload = await score_pronunciation(user, transcript)
+            await save_pronunciation_score(
+                session, user.id, user_message.id, user_message.audio_file_id, payload
+            )
+            await session.commit()
 
-    await callback.message.answer(
-        "Pronunciation Analysis\n\n"
-        f"Accuracy: {payload.accuracy_score}/100\n"
-        f"Fluency: {payload.fluency_score}/100\n"
-        f"Prosody: {payload.prosody_score}/100\n"
-        f"Grammar: {payload.grammar_score}/100\n"
-        f"Vocabulary: {payload.vocabulary_score}/100\n"
-        f"Topic: {payload.topic_score}/100\n\n"
-        f"Transcript:\n{payload.transcript}"
-        + (f"\n\n{payload.feedback}" if payload.feedback else "")
-    )
+    if callback.message:
+        await callback.message.edit_reply_markup(
+            reply_markup=response_actions(message_id, allow_score=True, score_checked=True)
+        )
+        await callback.message.answer(
+            "Pronunciation analysis is ready.",
+            reply_markup=analysis_button(message_id, callback.from_user.id),
+        )
     await callback.answer()
 
 
@@ -155,5 +169,10 @@ async def help_callback(callback: CallbackQuery) -> None:
         original = user_message.text or user_message.transcript or ""
         payload = await generate_conversation_help(user, original, assistant_message.text)
 
-    await callback.message.answer(payload.text)
+    if callback.message:
+        await callback.message.edit_reply_markup(
+            reply_markup=voice_response_actions(message_id, callback.from_user.id, help_checked=True)
+        )
+    quote = f"<blockquote>{escape(assistant_message.text)}</blockquote>\n\n" if assistant_message.text else ""
+    await callback.message.answer(f"{quote}{escape(payload.text)}", parse_mode=ParseMode.HTML)
     await callback.answer()
