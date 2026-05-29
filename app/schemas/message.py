@@ -28,19 +28,10 @@ class HelpResponse(BaseModel):
     text: str
 
 
-class FollowUpRequest(BaseModel):
-    question: str
-
-
-class FollowUpResponse(BaseModel):
-    answer: str
-
-
 class ExplainResponse(BaseModel):
     original_text: str
     corrected_text: str
     explanation: str
-    chatty_text: str | None = None
 
 
 class PronunciationScoreOut(BaseModel):

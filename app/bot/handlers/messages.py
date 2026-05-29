@@ -73,11 +73,7 @@ async def handle_text(message: Message) -> None:
 
     await message.answer(
         _correction_text(message.text or "", reply.correction),
-        reply_markup=response_actions(
-            assistant_message.id,
-            telegram_user_id=tg_user.id,
-            has_correction=bool(reply.correction),
-        ),
+        reply_markup=response_actions(assistant_message.id),
         parse_mode=ParseMode.HTML,
     )
     if user.voice_enabled:
@@ -131,12 +127,7 @@ async def handle_voice(message: Message) -> None:
 
     await message.answer(
         _correction_text(transcript, reply.correction),
-        reply_markup=response_actions(
-            assistant_message.id,
-            telegram_user_id=tg_user.id,
-            has_correction=bool(reply.correction),
-            allow_score=True,
-        ),
+        reply_markup=response_actions(assistant_message.id, allow_score=True),
         parse_mode=ParseMode.HTML,
     )
     if user.voice_enabled:
