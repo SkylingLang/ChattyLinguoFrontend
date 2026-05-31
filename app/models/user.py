@@ -27,12 +27,14 @@ class User(Base):
     subscription_plan: Mapped[str | None] = mapped_column(String(32))
     subscription_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     word_count: Mapped[int] = mapped_column(Integer, default=0)
+    correct_messages_count: Mapped[int] = mapped_column(Integer, default=0)
     current_streak: Mapped[int] = mapped_column(Integer, default=0)
     maximum_streak: Mapped[int] = mapped_column(Integer, default=0)
     messages_count: Mapped[int] = mapped_column(Integer, default=0)
     voice_messages_count: Mapped[int] = mapped_column(Integer, default=0)
     practice_days: Mapped[int] = mapped_column(Integer, default=0)
     last_active_date: Mapped[date | None] = mapped_column(Date)
+    active_dates: Mapped[list[str]] = mapped_column(JSON, default=list)
     frequent_grammar_mistakes: Mapped[list[str]] = mapped_column(JSON, default=list)
     weak_vocabulary_topics: Mapped[list[str]] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -42,3 +44,9 @@ class User(Base):
 
     messages = relationship("Message", back_populates="user", cascade="all, delete-orphan")
     saved_words = relationship("SavedWord", back_populates="user", cascade="all, delete-orphan")
+
+    @property
+    def correct_percent(self) -> int:
+        if self.messages_count <= 0:
+            return 0
+        return round((self.correct_messages_count / self.messages_count) * 100)

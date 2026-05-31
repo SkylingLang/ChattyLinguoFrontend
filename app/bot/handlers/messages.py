@@ -16,6 +16,14 @@ from app.services.tutor import generate_chat_reply, generate_voice_reply
 router = Router()
 
 
+def _word_count(text: str) -> int:
+    return len(text.split())
+
+
+def _message_is_correct(original: str, correction: str | None) -> bool:
+    return not correction or correction.strip().lower() == original.strip().lower()
+
+
 def _correction_text(original: str, correction: str | None) -> str:
     cleaned_correction = correction.strip() if correction else None
     if cleaned_correction and cleaned_correction.lower() != original.strip().lower():
@@ -47,8 +55,6 @@ async def handle_text(message: Message) -> None:
     tg_user = message.from_user
     async with AsyncSessionLocal() as session:
         user = await register_user(session, tg_user.id, tg_user.full_name, tg_user.username)
-        user.messages_count += 1
-        user.word_count += len((message.text or "").split())
         await update_streak(session, user)
         await save_message(
             session,
@@ -60,6 +66,10 @@ async def handle_text(message: Message) -> None:
         )
         history = await get_last_messages(session, user.id)
         reply = await generate_chat_reply(user, message.text or "", history)
+        user.messages_count += 1
+        user.word_count += _word_count(message.text or "")
+        if _message_is_correct(message.text or "", reply.correction):
+            user.correct_messages_count += 1
         assistant_message = await save_message(
             session,
             user.id,
@@ -104,8 +114,6 @@ async def handle_voice(message: Message) -> None:
         transcript = "I sent a voice message."
     async with AsyncSessionLocal() as session:
         user = await register_user(session, tg_user.id, tg_user.full_name, tg_user.username)
-        user.messages_count += 1
-        user.voice_messages_count += 1
         await update_streak(session, user)
         await save_message(
             session,
@@ -118,6 +126,11 @@ async def handle_voice(message: Message) -> None:
         )
         history = await get_last_messages(session, user.id)
         reply = await generate_chat_reply(user, transcript, history)
+        user.messages_count += 1
+        user.voice_messages_count += 1
+        user.word_count += _word_count(transcript)
+        if _message_is_correct(transcript, reply.correction):
+            user.correct_messages_count += 1
         assistant_message = await save_message(
             session,
             user.id,

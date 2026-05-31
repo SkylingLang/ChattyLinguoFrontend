@@ -9,11 +9,14 @@ class UserProfile {
     required this.selectedTopics,
     required this.subscriptionStatus,
     required this.wordCount,
+    required this.correctMessagesCount,
+    required this.correctPercent,
     required this.currentStreak,
     required this.maximumStreak,
     required this.messagesCount,
     required this.voiceMessagesCount,
     required this.practiceDays,
+    required this.activeDates,
     this.name,
     this.username,
     this.subscriptionPlan,
@@ -32,12 +35,15 @@ class UserProfile {
   final String subscriptionStatus;
   final String? subscriptionPlan;
   final int wordCount;
+  final int correctMessagesCount;
+  final int correctPercent;
   final int currentStreak;
   final int maximumStreak;
   final int messagesCount;
   final int voiceMessagesCount;
   final int practiceDays;
   final String? lastActiveDate;
+  final List<String> activeDates;
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
@@ -54,12 +60,15 @@ class UserProfile {
       subscriptionStatus: json['subscription_status'] as String? ?? 'free',
       subscriptionPlan: json['subscription_plan'] as String?,
       wordCount: json['word_count'] as int? ?? 0,
+      correctMessagesCount: json['correct_messages_count'] as int? ?? 0,
+      correctPercent: json['correct_percent'] as int? ?? 0,
       currentStreak: json['current_streak'] as int? ?? 0,
       maximumStreak: json['maximum_streak'] as int? ?? 0,
       messagesCount: json['messages_count'] as int? ?? 0,
       voiceMessagesCount: json['voice_messages_count'] as int? ?? 0,
       practiceDays: json['practice_days'] as int? ?? 0,
       lastActiveDate: json['last_active_date'] as String?,
+      activeDates: List<String>.from(json['active_dates'] as List? ?? const []),
     );
   }
 }

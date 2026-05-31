@@ -11,6 +11,5 @@ def get_stats(user: User) -> StatsOut:
         voice_messages_count=user.voice_messages_count,
         practice_days=user.practice_days,
         last_active_date=user.last_active_date,
-        correct_percent=0,
+        correct_percent=user.correct_percent,
     )
-

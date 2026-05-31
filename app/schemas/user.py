@@ -18,12 +18,15 @@ class UserProfile(BaseModel):
     subscription_plan: str | None
     subscription_expires_at: datetime | None
     word_count: int
+    correct_messages_count: int
+    correct_percent: int
     current_streak: int
     maximum_streak: int
     messages_count: int
     voice_messages_count: int
     practice_days: int
     last_active_date: date | None
+    active_dates: list[str]
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -47,4 +50,3 @@ class UpdateTopicsRequest(BaseModel):
 
 class UpdateLanguageRequest(BaseModel):
     native_language: str
-

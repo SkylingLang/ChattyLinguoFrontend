@@ -710,51 +710,57 @@ class _ScoreScreenState extends State<ScoreScreen> {
   }
 }
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({required this.profile, super.key});
 
   final UserProfile profile;
 
-  static const days = [
-    27,
-    28,
-    29,
-    30,
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-    16,
-    17,
-    18,
-    19,
-    20,
-    21,
-    22,
-    23,
-    24,
-    25,
-    26,
-    27,
-    28,
-    29,
-    30,
-    31,
-  ];
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  static const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  late DateTime visibleMonth;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    visibleMonth = DateTime(now.year, now.month);
+  }
+
+  List<DateTime?> get monthCells {
+    final firstDay = DateTime(visibleMonth.year, visibleMonth.month);
+    final daysInMonth =
+        DateTime(visibleMonth.year, visibleMonth.month + 1, 0).day;
+    return [
+      ...List<DateTime?>.filled(firstDay.weekday - 1, null),
+      for (var day = 1; day <= daysInMonth; day += 1)
+        DateTime(visibleMonth.year, visibleMonth.month, day),
+    ];
+  }
+
+  String dateKey(DateTime date) {
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '${date.year}-$month-$day';
+  }
+
+  void moveMonth(int delta) {
+    setState(() {
+      visibleMonth = DateTime(visibleMonth.year, visibleMonth.month + delta);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final profile = widget.profile;
+    final now = DateTime.now();
+    final todayKey = dateKey(now);
+    final activeDates = profile.activeDates.toSet();
+    final title = '${_monthName(visibleMonth.month)} ${visibleMonth.year}';
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -763,12 +769,13 @@ class ProfileScreen extends StatelessWidget {
           const CircleAvatar(
               radius: 56,
               backgroundColor: Color(0xfff0f4ff),
-              child: Text('👩🏻', style: TextStyle(fontSize: 62))),
+              child: Text('CL',
+                  style: TextStyle(fontSize: 38, fontWeight: FontWeight.w800))),
           const SizedBox(height: 10),
           Text(profile.name ?? 'Learner',
               style:
                   const TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
-          const Text('⭐ 0',
+          const Text('Star 0',
               style: TextStyle(fontSize: 24, color: Color(0xff606975))),
           const SizedBox(height: 22),
           const WideButton(
@@ -789,8 +796,7 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     const Icon(Icons.local_fire_department,
                         color: Color(0xffff8317), size: 62),
-                    Text(
-                        '${profile.currentStreak == 0 ? 1 : profile.currentStreak}',
+                    Text('${profile.currentStreak}',
                         style: const TextStyle(
                             fontSize: 72, fontWeight: FontWeight.w800)),
                   ],
@@ -798,26 +804,42 @@ class ProfileScreen extends StatelessWidget {
                 const Text('days streak',
                     style: TextStyle(fontSize: 26, color: Color(0xff68717a))),
                 const SizedBox(height: 24),
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('‹', style: TextStyle(fontSize: 22)),
-                    Text('May 2026', style: TextStyle(fontSize: 18)),
-                    Text('›', style: TextStyle(fontSize: 22))
+                    IconButton(
+                        onPressed: () => moveMonth(-1),
+                        icon: const Icon(Icons.chevron_left)),
+                    Text(title, style: const TextStyle(fontSize: 18)),
+                    IconButton(
+                        onPressed: () => moveMonth(1),
+                        icon: const Icon(Icons.chevron_right)),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: days.length,
+                  itemCount: weekdays.length + monthCells.length,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 7, mainAxisExtent: 42),
                   itemBuilder: (context, index) {
-                    final day = days[index];
-                    final isWeekend = index % 7 == 5 || index % 7 == 6;
-                    final isToday = day == 28;
-                    final isOutlined = day == 27 && index > 20;
+                    if (index < weekdays.length) {
+                      return Center(
+                        child: Text(weekdays[index],
+                            style: const TextStyle(
+                                fontSize: 12,
+                                color: Color(0xff7b838d),
+                                fontWeight: FontWeight.w700)),
+                      );
+                    }
+                    final cell = monthCells[index - weekdays.length];
+                    if (cell == null) return const SizedBox.shrink();
+                    final key = dateKey(cell);
+                    final isWeekend = cell.weekday == DateTime.saturday ||
+                        cell.weekday == DateTime.sunday;
+                    final isToday = key == todayKey;
+                    final isActive = activeDates.contains(key);
                     return Center(
                       child: Container(
                         width: 38,
@@ -828,13 +850,13 @@ class ProfileScreen extends StatelessWidget {
                               ? const Color(0xff358fe8)
                               : Colors.transparent,
                           shape: BoxShape.circle,
-                          border: isOutlined
+                          border: isActive
                               ? Border.all(
                                   color: const Color(0xffff8317), width: 2)
                               : null,
                         ),
                         child: Text(
-                          '$day',
+                          '${cell.day}',
                           style: TextStyle(
                               fontSize: 17,
                               color: isToday
@@ -861,7 +883,7 @@ class ProfileScreen extends StatelessWidget {
                 StatTile(value: '${profile.wordCount}', label: 'Words Said'),
                 StatTile(
                     value: '${profile.maximumStreak}', label: 'Max streak'),
-                const StatTile(value: '0%', label: 'Correct'),
+                StatTile(value: '${profile.correctPercent}%', label: 'Correct'),
                 StatTile(
                     value: '${profile.messagesCount}', label: 'Messages Sent'),
               ],
@@ -870,6 +892,24 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _monthName(int month) {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    return months[month - 1];
   }
 }
 

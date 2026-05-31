@@ -39,6 +39,12 @@ async def update_streak(session: AsyncSession, user: User, active_date: date | N
     if user.last_active_date == today:
         return
 
+    active_dates = list(user.active_dates or [])
+    today_key = today.isoformat()
+    if today_key not in active_dates:
+        active_dates.append(today_key)
+        user.active_dates = sorted(active_dates)
+
     if user.last_active_date == today - timedelta(days=1):
         user.current_streak += 1
     else:
