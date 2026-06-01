@@ -1,7 +1,7 @@
 from aiogram import Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
-from aiogram.types import BotCommand, Message
+from aiogram.types import BotCommand, InlineQuery, InlineQueryResultArticle, InputTextMessageContent, Message
 
 from app.bot.keyboards import (
     level_keyboard,
@@ -11,12 +11,27 @@ from app.bot.keyboards import (
     voice_speed_keyboard,
 )
 from app.db.session import AsyncSessionLocal
-from app.repositories.messages import get_dialogue_telegram_message_ids, reset_dialogue
+from app.repositories.messages import get_dialogue_telegram_message_ids
 from app.repositories.users import register_user
 from app.services.stats import get_stats
 from app.services.subscriptions import check_subscription
 
 router = Router()
+
+INLINE_COMMANDS = {
+    "/menu": "Open Mini App link",
+    "/help": "Show help",
+    "/voice": "Change Aqbota voice",
+    "/voice_speed": "Change Aqbota voice speed",
+    "/level": "Change English level",
+    "/topics": "Choose topics",
+    "/saved": "Open saved words",
+    "/languages": "Open languages",
+    "/stats": "Show stats",
+    "/unlimited": "Manage unlimited",
+    "/invite": "Invite friends",
+    "/reset": "Clear Telegram chat",
+}
 
 COMMANDS = [
     BotCommand(command="start", description="Start bot / onboarding"),
@@ -43,7 +58,7 @@ HELP_TEXT = """Команды:
 ⚪ /stats - Показать статистику использования Aqbota
 ⚪ /languages - Aqbota для других языков
 
-⚪ /reset - Начать новый разговор. Все предыдущие сообщения будут навсегда удалены из базы данных и останутся только в вашей истории.
+⚪ /reset - Очистить историю сообщений в Telegram-чате с Aqbota. Данные в базе не удаляются.
 
 🎤 Используйте голосовые сообщения вместо текста.
 🤓 Не стесняйтесь задавать любые вопросы. Новые фразы, переводы слов, правила грамматики и т.д.
@@ -160,15 +175,32 @@ async def reset(message: Message) -> None:
     user = await _user_from_message(message)
     async with AsyncSessionLocal() as session:
         telegram_message_ids = await get_dialogue_telegram_message_ids(session, user.id)
-        await reset_dialogue(session, user.id)
-        await session.commit()
 
-    for message_id in {*telegram_message_ids, message.message_id}:
+    recent_message_ids = range(max(1, message.message_id - 200), message.message_id + 1)
+    for message_id in {*telegram_message_ids, *recent_message_ids}:
         try:
             await message.bot.delete_message(message.chat.id, message_id)
         except TelegramBadRequest:
             pass
     await message.answer("Диалог очищен. Профиль и прогресс сохранены.")
+
+
+@router.inline_query()
+async def inline_command_query(inline_query: InlineQuery) -> None:
+    query = (inline_query.query or "").strip()
+    commands = [query] if query in INLINE_COMMANDS else [
+        command for command in INLINE_COMMANDS if command.startswith(query)
+    ]
+    results = [
+        InlineQueryResultArticle(
+            id=command.strip("/"),
+            title=command,
+            description=INLINE_COMMANDS[command],
+            input_message_content=InputTextMessageContent(message_text=command),
+        )
+        for command in commands[:10]
+    ]
+    await inline_query.answer(results, cache_time=0, is_personal=True)
 
 
 async def dispatch_web_app_command(message: Message, command: str) -> bool:
