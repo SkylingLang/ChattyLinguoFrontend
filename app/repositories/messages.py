@@ -48,6 +48,14 @@ async def get_message(session: AsyncSession, user_id: int, message_id: int) -> M
     return result.scalar_one_or_none()
 
 
+async def set_telegram_message_id(
+    session: AsyncSession, message_id: int, telegram_message_id: int
+) -> None:
+    message = await session.get(Message, message_id)
+    if message:
+        message.telegram_message_id = telegram_message_id
+
+
 async def get_previous_user_message(
     session: AsyncSession, user_id: int, message_id: int
 ) -> Message | None:
@@ -62,6 +70,16 @@ async def get_previous_user_message(
         .limit(1)
     )
     return result.scalar_one_or_none()
+
+
+async def get_dialogue_telegram_message_ids(session: AsyncSession, user_id: int) -> list[int]:
+    result = await session.execute(
+        select(Message.telegram_message_id).where(
+            Message.user_id == user_id,
+            Message.telegram_message_id.is_not(None),
+        )
+    )
+    return [message_id for message_id in result.scalars().all() if message_id is not None]
 
 
 async def trim_old_messages(session: AsyncSession, user_id: int, keep: int = 20) -> None:

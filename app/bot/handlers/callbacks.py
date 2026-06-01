@@ -10,6 +10,7 @@ from app.bot.keyboards import (
     response_actions,
     topics_keyboard,
     voice_keyboard,
+    voice_speed_keyboard,
     voice_response_actions,
 )
 from app.db.session import AsyncSessionLocal
@@ -49,6 +50,21 @@ async def select_voice(callback: CallbackQuery) -> None:
             text = f"Voice changed to {value}."
         await session.commit()
     await callback.message.edit_text(text, reply_markup=voice_keyboard(user.selected_voice, user.voice_enabled))
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("voice_speed:"))
+async def select_voice_speed(callback: CallbackQuery) -> None:
+    async with AsyncSessionLocal() as session:
+        user = await register_user(
+            session, callback.from_user.id, callback.from_user.full_name, callback.from_user.username
+        )
+        user.voice_speed = float(callback.data.split(":", 1)[1])
+        await session.commit()
+    await callback.message.edit_text(
+        f"Aqbota voice speed: {user.voice_speed:g}x",
+        reply_markup=voice_speed_keyboard(user.voice_speed),
+    )
     await callback.answer()
 
 
@@ -140,7 +156,7 @@ async def score_callback(callback: CallbackQuery) -> None:
 
     if callback.message:
         await callback.message.edit_reply_markup(
-            reply_markup=response_actions(message_id, allow_score=True, score_checked=True)
+            reply_markup=response_actions(message_id, allow_score=True)
         )
         await callback.message.answer(
             "Pronunciation analysis is ready.",

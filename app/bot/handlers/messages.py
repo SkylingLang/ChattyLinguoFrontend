@@ -5,10 +5,11 @@ from aiogram import F, Router
 from aiogram.enums import ParseMode
 from aiogram.types import BufferedInputFile, Message
 
-from app.bot.keyboards import response_actions, topics_keyboard, voice_response_actions
+from app.bot.handlers.commands import dispatch_web_app_command
+from app.bot.keyboards import response_actions, voice_response_actions
 from app.db.session import AsyncSessionLocal
 from app.models.enums import MessageRole, MessageType
-from app.repositories.messages import get_last_messages, save_message, trim_old_messages
+from app.repositories.messages import get_last_messages, save_message, set_telegram_message_id, trim_old_messages
 from app.repositories.users import register_user, update_streak
 from app.services.openai_client import openai_service
 from app.services.tutor import generate_chat_reply, generate_voice_reply
@@ -52,13 +53,9 @@ def _correction_diff(original: str, correction: str) -> str:
 
 @router.message(F.web_app_data)
 async def handle_web_app_data(message: Message) -> None:
-    if not message.web_app_data or message.web_app_data.data != "/topics":
+    if not message.web_app_data:
         return
-    tg_user = message.from_user
-    async with AsyncSessionLocal() as session:
-        user = await register_user(session, tg_user.id, tg_user.full_name, tg_user.username)
-        await session.commit()
-    await message.answer("Select topics:", reply_markup=topics_keyboard(user.selected_topics))
+    await dispatch_web_app_command(message, message.web_app_data.data)
 
 
 @router.message(F.text)
@@ -101,17 +98,24 @@ async def handle_text(message: Message) -> None:
         ),
         parse_mode=ParseMode.HTML,
     )
+    sent_message_id: int | None = None
     if user.voice_enabled:
-        speech = await generate_voice_reply(reply.reply_text, user.selected_voice)
+        speech = await generate_voice_reply(reply.reply_text, user.selected_voice, user.voice_speed)
         if speech:
-            await message.answer_voice(
+            sent = await message.answer_voice(
                 BufferedInputFile(speech, filename="chatty-reply.mp3"),
                 reply_markup=voice_response_actions(assistant_message.id, tg_user.id),
             )
+            sent_message_id = sent.message_id
     else:
-        await message.answer(
+        sent = await message.answer(
             reply.reply_text, reply_markup=voice_response_actions(assistant_message.id, tg_user.id)
         )
+        sent_message_id = sent.message_id
+    if sent_message_id:
+        async with AsyncSessionLocal() as session:
+            await set_telegram_message_id(session, assistant_message.id, sent_message_id)
+            await session.commit()
 
 
 @router.message(F.voice)
@@ -163,14 +167,21 @@ async def handle_voice(message: Message) -> None:
         ),
         parse_mode=ParseMode.HTML,
     )
+    sent_message_id: int | None = None
     if user.voice_enabled:
-        speech = await generate_voice_reply(reply.reply_text, user.selected_voice)
+        speech = await generate_voice_reply(reply.reply_text, user.selected_voice, user.voice_speed)
         if speech:
-            await message.answer_voice(
+            sent = await message.answer_voice(
                 BufferedInputFile(speech, filename="chatty-reply.mp3"),
                 reply_markup=voice_response_actions(assistant_message.id, tg_user.id),
             )
+            sent_message_id = sent.message_id
     else:
-        await message.answer(
+        sent = await message.answer(
             reply.reply_text, reply_markup=voice_response_actions(assistant_message.id, tg_user.id)
         )
+        sent_message_id = sent.message_id
+    if sent_message_id:
+        async with AsyncSessionLocal() as session:
+            await set_telegram_message_id(session, assistant_message.id, sent_message_id)
+            await session.commit()

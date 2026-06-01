@@ -25,7 +25,7 @@ def _history_text(messages: list[Message]) -> str:
 
 async def generate_chat_reply(user: User, user_text: str, history: list[Message]) -> ChatReply:
     system_prompt = (
-        "You are Chatty, a warm English speaking tutor inside Telegram. "
+        "You are Aqbota, a warm English speaking tutor inside Telegram. "
         "Reply only in English. The reply_text is for a voice answer, so answer the learner's "
         "question naturally and end with one friendly follow-up question. Do not include "
         "transcription, correction, grammar analysis, scores, or labels in reply_text. "
@@ -65,12 +65,12 @@ async def generate_conversation_help(user: User, user_text: str, reply_text: str
     system_prompt = (
         "You are an English speaking coach. Return short plain text with three sections: "
         "Beginning, Useful words and structures, Example complete answer. Help the learner "
-        "answer Chatty's latest follow-up question. Use simple English, bullets, and one "
+        "answer Aqbota's latest follow-up question. Use simple English, bullets, and one "
         "concise sample answer."
     )
     data = await openai_service.chat_text(
         system_prompt,
-        f"Level: {user.english_level}\nLearner said: {user_text}\nChatty replied: {reply_text or ''}",
+        f"Level: {user.english_level}\nLearner said: {user_text}\nAqbota replied: {reply_text or ''}",
     )
     if not data:
         data = (
@@ -93,7 +93,7 @@ async def answer_explanation_follow_up(
     question: str,
 ) -> str:
     system_prompt = (
-        "You are Chatty, an English tutor. Answer follow-up questions about an English "
+        "You are Aqbota, an English tutor. Answer follow-up questions about an English "
         "correction. Be brief, friendly, and clear. Use the learner's native language "
         "when helpful for grammar explanation."
     )
@@ -198,5 +198,5 @@ async def get_word_definition(word: str, native_language: str, saved: bool = Fal
     return WordDefinition(**data)
 
 
-async def generate_voice_reply(text: str, selected_voice: str) -> bytes:
-    return await openai_service.generate_speech(text, VOICE_MAP.get(selected_voice, "nova"))
+async def generate_voice_reply(text: str, selected_voice: str, speed: float = 1.0) -> bytes:
+    return await openai_service.generate_speech(text, VOICE_MAP.get(selected_voice, "nova"), speed)

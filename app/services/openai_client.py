@@ -50,7 +50,7 @@ class OpenAIService:
         )
         return transcription.text
 
-    async def generate_speech(self, text: str, voice: str) -> bytes:
+    async def generate_speech(self, text: str, voice: str, speed: float = 1.0) -> bytes:
         if not self.client:
             return b""
 
@@ -58,10 +58,10 @@ class OpenAIService:
             model=settings.openai_tts_model,
             voice=voice,
             input=text,
+            speed=speed,
             response_format="mp3",
         )
         return response.content
 
 
 openai_service = OpenAIService()
-

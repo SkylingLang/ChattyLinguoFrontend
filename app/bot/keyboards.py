@@ -7,6 +7,7 @@ from app.core.config import get_settings
 settings = get_settings()
 
 VOICE_OPTIONS = ["Alex", "Eric", "Henry", "James", "Alexa", "Emily"]
+VOICE_SPEED_OPTIONS = [0.75, 1.0, 1.25, 1.5]
 LEVEL_OPTIONS = [
     "Beginner",
     "Elementary",
@@ -133,6 +134,20 @@ def voice_keyboard(selected: str, enabled: bool) -> InlineKeyboardMarkup:
         rows.append([InlineKeyboardButton(text=label, callback_data=f"voice:{voice}")])
     rows.append([InlineKeyboardButton(text="Turn off", callback_data="voice:off")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def voice_speed_keyboard(selected: float) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=f"{speed:g}x ✅" if abs(speed - selected) < 0.001 else f"{speed:g}x",
+                    callback_data=f"voice_speed:{speed}",
+                )
+            ]
+            for speed in VOICE_SPEED_OPTIONS
+        ]
+    )
 
 
 def level_keyboard(selected: str) -> InlineKeyboardMarkup:
