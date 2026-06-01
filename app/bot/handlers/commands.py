@@ -1,7 +1,7 @@
 from aiogram import Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
-from aiogram.types import BotCommand, InlineQuery, InlineQueryResultArticle, InputTextMessageContent, Message
+from aiogram.types import BotCommand, Message
 
 from app.bot.keyboards import (
     level_keyboard,
@@ -17,21 +17,6 @@ from app.services.stats import get_stats
 from app.services.subscriptions import check_subscription
 
 router = Router()
-
-INLINE_COMMANDS = {
-    "/menu": "Open Mini App link",
-    "/help": "Show help",
-    "/voice": "Change Aqbota voice",
-    "/voice_speed": "Change Aqbota voice speed",
-    "/level": "Change English level",
-    "/topics": "Choose topics",
-    "/saved": "Open saved words",
-    "/languages": "Open languages",
-    "/stats": "Show stats",
-    "/unlimited": "Manage unlimited",
-    "/invite": "Invite friends",
-    "/reset": "Clear Telegram chat",
-}
 
 COMMANDS = [
     BotCommand(command="start", description="Start bot / onboarding"),
@@ -183,24 +168,6 @@ async def reset(message: Message) -> None:
         except TelegramBadRequest:
             pass
     await message.answer("Диалог очищен. Профиль и прогресс сохранены.")
-
-
-@router.inline_query()
-async def inline_command_query(inline_query: InlineQuery) -> None:
-    query = (inline_query.query or "").strip()
-    commands = [query] if query in INLINE_COMMANDS else [
-        command for command in INLINE_COMMANDS if command.startswith(query)
-    ]
-    results = [
-        InlineQueryResultArticle(
-            id=command.strip("/"),
-            title=command,
-            description=INLINE_COMMANDS[command],
-            input_message_content=InputTextMessageContent(message_text=command),
-        )
-        for command in commands[:10]
-    ]
-    await inline_query.answer(results, cache_time=0, is_personal=True)
 
 
 async def dispatch_web_app_command(message: Message, command: str) -> bool:
