@@ -5,7 +5,7 @@ from aiogram import F, Router
 from aiogram.enums import ParseMode
 from aiogram.types import BufferedInputFile, Message
 
-from app.bot.keyboards import response_actions, voice_response_actions
+from app.bot.keyboards import response_actions, topics_keyboard, voice_response_actions
 from app.db.session import AsyncSessionLocal
 from app.models.enums import MessageRole, MessageType
 from app.repositories.messages import get_last_messages, save_message, trim_old_messages
@@ -48,6 +48,17 @@ def _correction_diff(original: str, correction: str) -> str:
         elif tag == "insert":
             parts.append(escape(new))
     return " ".join(part for part in parts if part)
+
+
+@router.message(F.web_app_data)
+async def handle_web_app_data(message: Message) -> None:
+    if not message.web_app_data or message.web_app_data.data != "/topics":
+        return
+    tg_user = message.from_user
+    async with AsyncSessionLocal() as session:
+        user = await register_user(session, tg_user.id, tg_user.full_name, tg_user.username)
+        await session.commit()
+    await message.answer("Select topics:", reply_markup=topics_keyboard(user.selected_topics))
 
 
 @router.message(F.text)
