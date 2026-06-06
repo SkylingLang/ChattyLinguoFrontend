@@ -8,13 +8,20 @@ from aiogram.types import BufferedInputFile, Message
 from app.bot.handlers.commands import dispatch_web_app_command
 from app.bot.keyboards import response_actions, voice_response_actions
 from app.db.session import AsyncSessionLocal
-from app.models.enums import MessageRole, MessageType
+from app.models.enums import MessageRole, MessageType, SubscriptionStatus
+from app.models.user import User
 from app.repositories.messages import get_last_messages, save_message, set_telegram_message_id, trim_old_messages
 from app.repositories.users import register_user, update_streak
 from app.services.openai_client import openai_service
 from app.services.tutor import generate_chat_reply, generate_voice_reply
 
 router = Router()
+
+FREE_TIER_MESSAGE_LIMIT = 20
+FREE_TIER_LIMIT_TEXT = (
+    "You reached the limit of the free tier. "
+    "Buy a subscription to continue chatting with Aqbota."
+)
 
 
 def _word_count(text: str) -> int:
@@ -23,6 +30,13 @@ def _word_count(text: str) -> int:
 
 def _message_is_correct(original: str, correction: str | None) -> bool:
     return not correction or correction.strip().lower() == original.strip().lower()
+
+
+def _is_free_tier_limited(user: User) -> bool:
+    return (
+        user.subscription_status == SubscriptionStatus.FREE.value
+        and user.messages_count >= FREE_TIER_MESSAGE_LIMIT
+    )
 
 
 def _correction_text(original: str, correction: str | None) -> str:
@@ -63,6 +77,10 @@ async def handle_text(message: Message) -> None:
     tg_user = message.from_user
     async with AsyncSessionLocal() as session:
         user = await register_user(session, tg_user.id, tg_user.full_name, tg_user.username)
+        if _is_free_tier_limited(user):
+            await session.commit()
+            await message.answer(FREE_TIER_LIMIT_TEXT)
+            return
         await update_streak(session, user)
         await save_message(
             session,
@@ -121,6 +139,14 @@ async def handle_text(message: Message) -> None:
 @router.message(F.voice)
 async def handle_voice(message: Message) -> None:
     tg_user = message.from_user
+    async with AsyncSessionLocal() as session:
+        user = await register_user(session, tg_user.id, tg_user.full_name, tg_user.username)
+        if _is_free_tier_limited(user):
+            await session.commit()
+            await message.answer(FREE_TIER_LIMIT_TEXT)
+            return
+        await session.commit()
+
     voice_file = await message.bot.get_file(message.voice.file_id)
     buffer = await message.bot.download_file(voice_file.file_path)
     audio_bytes = buffer.read() if buffer else b""
