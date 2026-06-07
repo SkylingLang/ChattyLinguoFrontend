@@ -1,0 +1,1167 @@
+:root {
+  --blue: #248af0;
+  --blue-dark: #006bd8;
+  --panel: #f2f2f4;
+  --panel-2: #eeeeF1;
+  --text: #050505;
+  --muted: #9ca0a6;
+  --green: #57b34f;
+  --yellow: #f2cd40;
+  --line: #d7d8dc;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: #f5f7fb;
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button {
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.appStage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    linear-gradient(180deg, rgba(36, 138, 240, 0.08), transparent 42%),
+    #f5f7fb;
+}
+
+.phoneFrame {
+  width: min(600px, 100%);
+  height: min(860px, calc(100vh - 48px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #e1e4e8;
+  border-radius: 24px;
+  background: white;
+  box-shadow: 0 18px 48px rgba(30, 45, 70, 0.16);
+}
+
+.screen {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+}
+
+.page {
+  min-height: 100%;
+  padding: 20px;
+}
+
+.panel,
+.scrollPanel {
+  width: 100%;
+  border-radius: 28px;
+  background: var(--panel);
+}
+
+.scrollPanel {
+  position: relative;
+  min-height: 108px;
+  max-height: 610px;
+  overflow: auto;
+  padding: 18px 24px;
+}
+
+.scrollPanel.compact {
+  min-height: 110px;
+  max-height: 130px;
+}
+
+.fakeScroll {
+  position: sticky;
+  right: 0;
+  bottom: 0;
+  float: right;
+  display: grid;
+  gap: 36px;
+  color: #96999e;
+}
+
+.fakeScroll svg:first-child {
+  transform: rotate(180deg);
+}
+
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: white;
+  background:
+    radial-gradient(circle at 50% 45%, #8d4a2e 0 26%, transparent 27%),
+    conic-gradient(#d01f35 0 12%, white 12% 25%, #183f8f 25% 38%, white 38% 51%, #d01f35 51% 64%, white 64% 77%, #183f8f 77% 90%, white 90%);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.72);
+}
+
+.avatar svg {
+  width: 19px;
+  height: 19px;
+}
+
+.avatar.large {
+  width: 104px;
+  height: 104px;
+}
+
+.avatar.large svg {
+  width: 52px;
+  height: 52px;
+}
+
+.profileHero {
+  display: grid;
+  justify-items: center;
+  padding: 10px 0 16px;
+}
+
+.profileHero h1 {
+  margin: 12px 0 3px;
+  font-size: 34px;
+}
+
+.profileHero p {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  color: #6f7780;
+  font-size: 22px;
+}
+
+.quickGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.quickGrid button {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 86px;
+  border-radius: 18px;
+  background: #eaf4ff;
+  color: var(--blue-dark);
+  font-weight: 800;
+}
+
+.quickGrid svg {
+  width: 28px;
+  height: 28px;
+}
+
+.streakPanel,
+.statsGrid,
+.starsPage .panel {
+  padding: 22px;
+}
+
+.streakTop {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.streakTop svg {
+  width: 56px;
+  height: 56px;
+  color: #ff8418;
+}
+
+.streakTop strong {
+  font-size: 72px;
+}
+
+.streakPanel > span {
+  display: block;
+  text-align: center;
+  color: #6f7780;
+  font-size: 24px;
+}
+
+.calendarTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 22px 0 12px;
+  font-size: 18px;
+}
+
+.calendarTitle button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: var(--blue-dark);
+}
+
+.calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.calendar b {
+  display: grid;
+  place-items: center;
+  min-height: 24px;
+  color: #7b838d;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.calendar span,
+.calendar i {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  font-size: 17px;
+}
+
+.calendar i {
+  pointer-events: none;
+}
+
+.calendar .today {
+  background: var(--blue);
+  color: white;
+  font-weight: 800;
+}
+
+.calendar .ring {
+  border: 2px solid #ff8418;
+}
+
+.calendar .weekend {
+  color: red;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.statsGrid strong {
+  display: block;
+  font-size: 34px;
+}
+
+.statsGrid span {
+  color: #68717a;
+  font-size: 18px;
+}
+
+.largeText {
+  margin: 0 0 42px;
+  font-size: 30px;
+  line-height: 1.38;
+}
+
+.wordButton {
+  display: inline;
+  padding: 0;
+  line-height: inherit;
+}
+
+.wordButton:hover,
+.savedLine button:hover,
+mark {
+  background: #dfe4ff;
+}
+
+.translateButton,
+.languageButton,
+.primaryButton,
+.secondaryButton {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 24px;
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.translateButton,
+.languageButton,
+.secondaryButton {
+  background: white;
+}
+
+.languageButton {
+  margin-top: 32px;
+  background: var(--panel);
+}
+
+.tapHint {
+  margin: 36px auto 16px;
+  max-width: 520px;
+  text-align: center;
+  color: #a4a6ab;
+  font-size: 26px;
+  line-height: 1.24;
+}
+
+.english {
+  margin-top: 24px;
+}
+
+.explainPage .scrollPanel {
+  max-height: none;
+  padding: 12px;
+}
+
+.bubble {
+  padding: 8px 12px;
+  border-radius: 20px;
+}
+
+.bubble p {
+  margin: 2px 0 0;
+  font-size: 24px;
+  line-height: 1.42;
+}
+
+.chattyBubble {
+  background: #dedee1;
+}
+
+.learnerBubble {
+  margin-top: 12px;
+  background: #d9f5dc;
+}
+
+.explainText {
+  margin: 22px 0 26px;
+  font-size: 23px;
+  line-height: 1.4;
+}
+
+.questionBox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 26px;
+  border-top: 1px solid #8f9398;
+}
+
+.questionBox span {
+  flex: 1;
+  padding: 16px 18px;
+  border: 1px solid #8f9398;
+  border-radius: 28px;
+  color: #737983;
+  font-size: 20px;
+}
+
+.questionBox input {
+  min-width: 0;
+  flex: 1;
+  padding: 16px 18px;
+  border: 1px solid #8f9398;
+  border-radius: 28px;
+  outline: 0;
+  color: #111;
+  font: inherit;
+  font-size: 20px;
+}
+
+.questionBox button {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: #b8bcc3;
+  color: white;
+}
+
+.savedPage {
+  display: flex;
+  flex-direction: column;
+}
+
+.savedLine {
+  margin: 6px 28px;
+  font-size: 36px;
+}
+
+.savedLine button {
+  padding: 0;
+  font-size: inherit;
+}
+
+.emptySaved {
+  margin: 14px 8px;
+  font-size: 25px;
+  line-height: 1.44;
+}
+
+.savedWordList {
+  display: grid;
+  gap: 16px;
+  counter-reset: saved-word;
+}
+
+.savedWordList button {
+  counter-increment: saved-word;
+  width: 100%;
+  padding: 4px 30px;
+  text-align: left;
+  font-size: 30px;
+  line-height: 1.2;
+}
+
+.savedWordList button::before {
+  content: counter(saved-word) ". ";
+}
+
+.savedHint {
+  margin-top: 26px;
+}
+
+.definitionSheet {
+  max-height: 420px;
+  overflow: auto;
+  padding: 18px 22px 88px;
+  border: 1px solid #d1d3d7;
+  border-radius: 22px 22px 0 0;
+  background: #fbfbfc;
+  box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.12);
+}
+
+.sheetBackdrop {
+  position: fixed;
+  z-index: 30;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.sheetSurface {
+  width: min(600px, 100%);
+  max-height: 72vh;
+  overflow: hidden;
+  border-radius: 22px 22px 0 0;
+  background: white;
+  box-shadow: 0 -16px 42px rgba(0, 0, 0, 0.22);
+}
+
+.sheetSurface .definitionSheet {
+  max-height: 72vh;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+  box-shadow: none;
+}
+
+.definitionHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 28px;
+}
+
+.definitionHeader h2 {
+  margin: 0;
+  font-size: 36px;
+}
+
+.definitionHeader button {
+  margin-left: auto;
+}
+
+.definitionHeader .roundClose {
+  width: 36px;
+  height: 36px;
+  margin-left: 0;
+  border-radius: 50%;
+  background: #e4e5e8;
+  color: #68707a;
+}
+
+.bookmarkButton.active {
+  color: #000;
+}
+
+.pronounce {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 12px;
+  border: 1px solid #979da4;
+  border-radius: 18px;
+  color: #69707a;
+  font-size: 16px;
+}
+
+.example {
+  font-size: 22px;
+  font-style: italic;
+}
+
+.definitionSheet h3 {
+  font-size: 22px;
+}
+
+.definitionSheet li {
+  margin-bottom: 18px;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.definitionSheet i {
+  color: #666;
+}
+
+.scorePage h1 {
+  margin: 8px 8px 24px;
+  font-size: 30px;
+}
+
+.scoreGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px 12px;
+  padding: 18px 14px;
+}
+
+.metric span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 24px;
+}
+
+.metric div {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: white;
+}
+
+.metric i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.good {
+  background: var(--green);
+}
+
+.warn {
+  background: var(--yellow);
+}
+
+.scoreTranscript {
+  padding: 18px;
+  font-size: 24px;
+  text-decoration: underline;
+  text-decoration-color: #e3cb2e;
+  text-underline-offset: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.feedbackPanel,
+.statePanel {
+  margin-top: 16px;
+  padding: 18px;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.statePanel p {
+  margin: 0;
+  font-size: 22px;
+}
+
+.statePanel small {
+  display: block;
+  margin-top: 10px;
+  color: #68717a;
+  word-break: break-word;
+}
+
+.languageRows {
+  overflow: hidden;
+  border-radius: 26px;
+  background: var(--panel);
+}
+
+.languageRows button {
+  position: relative;
+  width: 100%;
+  min-height: 70px;
+  display: grid;
+  grid-template-columns: 62px 1fr 28px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 1px solid white;
+  text-align: left;
+  font-size: 22px;
+}
+
+.languageRows button.selected {
+  background: #e8f3ff;
+}
+
+.languageRows button > i {
+  position: absolute;
+  right: 52px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.starsHero {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.starsHero svg {
+  width: 60px;
+  height: 60px;
+  color: #f0a11b;
+}
+
+.starsHero h1 {
+  margin: 10px 0;
+  font-size: 32px;
+}
+
+.starsHero p {
+  margin: 0;
+  color: #68717a;
+  font-size: 20px;
+}
+
+.primaryButton {
+  margin-top: 14px;
+  background: var(--blue);
+  color: white;
+  font-weight: 800;
+}
+
+.secondaryButton {
+  margin-top: 12px;
+  margin-bottom: 20px;
+  color: var(--blue-dark);
+  background: #c2def7;
+  font-weight: 800;
+}
+
+.settingsPage {
+  display: grid;
+  align-content: start;
+  gap: 28px;
+}
+
+.settingsRow {
+  display: grid;
+  grid-template-columns: 42px 1fr 28px;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 64px;
+  padding: 12px 16px;
+  background: var(--panel);
+  text-align: left;
+  font-size: 24px;
+}
+
+.settingsRow span {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--blue);
+  color: white;
+}
+
+.settingsRow.premium {
+  min-height: 78px;
+  border-radius: 20px;
+  background: #ff2b62;
+  color: white;
+  font-weight: 800;
+}
+
+.settingsRow.premium span {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.settingsGroup {
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--panel);
+}
+
+.settingsGroup .settingsRow {
+  border-bottom: 1px solid white;
+}
+
+.settingsGroup .settingsRow:last-child {
+  border-bottom: 0;
+}
+
+.modeSwitcher,
+.bottomNav {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+}
+
+.modeSwitcher {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  min-height: 64px;
+}
+
+.modeSwitcher button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #88909a;
+  font-weight: 800;
+}
+
+.modeSwitcher button.active {
+  color: var(--blue-dark);
+}
+
+.modeSwitcher svg {
+  width: 20px;
+  height: 20px;
+  padding: 3px;
+  border-radius: 5px;
+  background: #08bd2e;
+  color: white;
+}
+
+.bottomNav {
+  height: 80px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.bottomNav button {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 4px;
+  color: #9aa1a9;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.bottomNav svg {
+  width: 30px;
+  height: 30px;
+  padding: 5px;
+  border-radius: 50%;
+}
+
+.bottomNav .active {
+  color: var(--blue-dark);
+}
+
+.bottomNav .active svg {
+  background: var(--blue);
+  color: white;
+}
+
+@media (max-width: 640px) {
+  .appStage {
+    padding: 0;
+  }
+
+  .phoneFrame {
+    width: 100vw;
+    height: 100vh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .page {
+    padding: 18px 12px;
+  }
+
+  .largeText {
+    font-size: 25px;
+  }
+
+  .scoreGrid,
+  .languageGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Compact app scale */
+.phoneFrame {
+  width: min(560px, 100%);
+  height: min(820px, calc(100vh - 48px));
+  border-radius: 20px;
+}
+
+.page {
+  padding: 16px;
+}
+
+.panel,
+.scrollPanel {
+  border-radius: 22px;
+}
+
+.scrollPanel {
+  min-height: 92px;
+  max-height: 560px;
+  padding: 14px 18px;
+}
+
+.scrollPanel.compact {
+  min-height: 92px;
+  max-height: 112px;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+}
+
+.avatar svg {
+  width: 16px;
+  height: 16px;
+}
+
+.avatar.large {
+  width: 86px;
+  height: 86px;
+}
+
+.avatar.large svg {
+  width: 42px;
+  height: 42px;
+}
+
+.profileHero h1 {
+  font-size: 28px;
+}
+
+.profileHero p {
+  font-size: 18px;
+}
+
+.streakPanel,
+.statsGrid,
+.starsPage .panel {
+  padding: 18px;
+}
+
+.streakTop svg {
+  width: 46px;
+  height: 46px;
+}
+
+.streakTop strong {
+  font-size: 58px;
+}
+
+.streakPanel > span {
+  font-size: 20px;
+}
+
+.calendarTitle {
+  margin: 18px 0 10px;
+  font-size: 15px;
+}
+
+.calendarTitle button {
+  width: 32px;
+  height: 32px;
+}
+
+.calendar {
+  gap: 6px;
+}
+
+.calendar b {
+  min-height: 20px;
+  font-size: 11px;
+}
+
+.calendar span,
+.calendar i {
+  font-size: 14px;
+}
+
+.statsGrid {
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.statsGrid strong {
+  font-size: 28px;
+}
+
+.statsGrid span {
+  font-size: 15px;
+}
+
+.largeText {
+  margin-bottom: 34px;
+  font-size: 24px;
+}
+
+.translateButton,
+.languageButton,
+.primaryButton,
+.secondaryButton {
+  min-height: 42px;
+  border-radius: 21px;
+  font-size: 16px;
+}
+
+.languageButton {
+  margin-top: 24px;
+}
+
+.tapHint {
+  margin: 28px auto 12px;
+  max-width: 460px;
+  font-size: 21px;
+}
+
+.bubble {
+  padding: 7px 10px;
+  border-radius: 16px;
+}
+
+.bubble p {
+  font-size: 19px;
+}
+
+.explainText {
+  margin: 18px 0 22px;
+  font-size: 18px;
+}
+
+.questionBox {
+  gap: 10px;
+  padding-top: 20px;
+}
+
+.questionBox span,
+.questionBox input {
+  padding: 13px 15px;
+  border-radius: 23px;
+  font-size: 16px;
+}
+
+.questionBox button {
+  width: 48px;
+  height: 48px;
+}
+
+.emptySaved {
+  font-size: 20px;
+}
+
+.savedWordList {
+  gap: 12px;
+}
+
+.savedWordList button {
+  padding: 4px 24px;
+  font-size: 24px;
+}
+
+.definitionSheet {
+  max-height: 380px;
+  padding: 15px 18px 72px;
+  border-radius: 18px 18px 0 0;
+}
+
+.sheetSurface {
+  width: min(560px, 100%);
+  border-radius: 18px 18px 0 0;
+}
+
+.definitionHeader {
+  gap: 10px;
+  font-size: 22px;
+}
+
+.definitionHeader h2 {
+  font-size: 28px;
+}
+
+.definitionHeader .roundClose {
+  width: 30px;
+  height: 30px;
+}
+
+.example,
+.definitionSheet h3 {
+  font-size: 18px;
+}
+
+.definitionSheet li {
+  margin-bottom: 14px;
+  font-size: 16px;
+}
+
+.scorePage h1 {
+  margin: 6px 6px 18px;
+  font-size: 24px;
+}
+
+.scoreGrid {
+  gap: 12px 10px;
+  padding: 14px 12px;
+}
+
+.metric span,
+.scoreTranscript {
+  font-size: 19px;
+}
+
+.metric div {
+  height: 10px;
+}
+
+.scoreTranscript {
+  padding: 14px;
+}
+
+.feedbackPanel,
+.statePanel {
+  margin-top: 14px;
+  padding: 14px;
+  font-size: 15px;
+}
+
+.statePanel p {
+  font-size: 18px;
+}
+
+.languageRows {
+  border-radius: 22px;
+}
+
+.languageRows button {
+  grid-template-columns: 50px 1fr 24px;
+  min-height: 58px;
+  gap: 8px;
+  padding: 7px 14px;
+  font-size: 18px;
+}
+
+.starsHero {
+  margin-bottom: 18px;
+}
+
+.starsHero svg {
+  width: 48px;
+  height: 48px;
+}
+
+.starsHero h1 {
+  font-size: 26px;
+}
+
+.starsHero p {
+  font-size: 16px;
+}
+
+.settingsPage {
+  gap: 24px;
+}
+
+.settingsRow {
+  grid-template-columns: 36px 1fr 24px;
+  min-height: 54px;
+  gap: 10px;
+  padding: 10px 14px;
+  font-size: 19px;
+}
+
+.settingsRow span {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.settingsRow.premium {
+  min-height: 64px;
+  border-radius: 18px;
+}
+
+.settingsGroup {
+  border-radius: 18px;
+}
+
+.modeSwitcher {
+  min-height: 54px;
+}
+
+.bottomNav {
+  height: 66px;
+}
+
+.bottomNav button {
+  gap: 3px;
+  font-size: 12px;
+}
+
+.bottomNav svg {
+  width: 25px;
+  height: 25px;
+  padding: 4px;
+}
+
+@media (max-width: 640px) {
+  .phoneFrame {
+    width: 100vw;
+    height: 100vh;
+    border-radius: 0;
+  }
+
+  .page {
+    padding: 14px 12px;
+  }
+
+  .largeText {
+    font-size: 22px;
+  }
+}
