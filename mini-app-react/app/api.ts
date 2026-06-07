@@ -74,7 +74,11 @@ declare global {
         initData?: string;
         initDataUnsafe?: {
           query_id?: string;
+          user?: {
+            id?: number;
+          };
         };
+        platform?: string;
         ready?: () => void;
         expand?: () => void;
         close?: () => void;

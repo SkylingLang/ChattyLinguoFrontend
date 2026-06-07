@@ -31,6 +31,11 @@ button {
   font: inherit;
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
 .appStage {
   min-height: 100vh;
   display: grid;
@@ -39,6 +44,94 @@ button {
   background:
     linear-gradient(180deg, rgba(36, 138, 240, 0.08), transparent 42%),
     #f5f7fb;
+}
+
+.launchStage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background-color: #9fca92;
+  background-image:
+    linear-gradient(115deg, rgba(35, 124, 136, 0.45), rgba(241, 229, 112, 0.54), rgba(103, 171, 124, 0.42)),
+    url("data:image/svg+xml,%3Csvg width='180' height='180' viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23586f56' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' opacity='.42'%3E%3Cpath d='M25 35l27-15-8 30-12-8-7 12z'/%3E%3Cpath d='M45 42l-13 12'/%3E%3Ccircle cx='120' cy='34' r='15'/%3E%3Cpath d='M108 25c10 8 19 14 29 20'/%3E%3Cpath d='M18 112c6-16 28-15 31 2 1 12-10 22-23 17-12-4-15-15-8-19z'/%3E%3Cpath d='M28 102c3-10 13-11 20-6'/%3E%3Cpath d='M103 118c10-8 28-1 29 13 0 15-21 20-32 9-6-6-4-14 3-22z'/%3E%3Cpath d='M98 99c15 1 24 5 37 15'/%3E%3Cpath d='M75 70c11-6 24-3 31 8-16 7-27 6-31-8z'/%3E%3Cpath d='M80 78c-3 9-7 18-13 26'/%3E%3Cpath d='M150 85c9 0 14 8 11 16-4 8-16 8-20 0-3-8 2-16 11-16z'/%3E%3Cpath d='M55 145h32M70 130v32'/%3E%3Cpath d='M145 145l14-14M159 145l-14-14'/%3E%3Cpath d='M15 68c10-7 21-5 28 3'/%3E%3Cpath d='M132 68c6-8 15-9 24-3'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: cover, 180px 180px;
+}
+
+.launchCard {
+  width: min(600px, calc(100vw - 32px));
+  display: grid;
+  justify-items: center;
+  padding: 54px 56px 58px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #101010;
+  text-align: center;
+  box-shadow: 0 22px 58px rgba(33, 71, 58, 0.18);
+}
+
+.launchCard .avatar.large {
+  margin-bottom: 42px;
+  width: 112px;
+  height: 112px;
+}
+
+.launchCard h1 {
+  margin: 0 0 14px;
+  font-size: 42px;
+  line-height: 1.1;
+  font-weight: 800;
+}
+
+.launchHandle,
+.launchUsers {
+  margin: 0;
+  color: #6f6f73;
+  font-size: 23px;
+}
+
+.launchUsers {
+  margin-top: 26px;
+}
+
+.launchCopy {
+  margin-top: 26px;
+  font-size: 25px;
+  line-height: 1.42;
+}
+
+.launchCopy p {
+  margin: 0;
+}
+
+.launchCopy a {
+  color: #248af0;
+}
+
+.launchButton {
+  display: grid;
+  place-items: center;
+  width: min(280px, 100%);
+  min-height: 74px;
+  margin-top: 38px;
+  border-radius: 34px;
+  background: #3896e8;
+  color: white;
+  font-size: 26px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.launchFootnote {
+  max-width: 450px;
+  margin: 44px 0 0;
+  color: #6d6d70;
+  font-size: 23px;
+  line-height: 1.42;
+}
+
+.launchFootnote strong {
+  color: #171717;
 }
 
 .phoneFrame {
@@ -804,6 +897,39 @@ mark {
 @media (max-width: 640px) {
   .appStage {
     padding: 0;
+  }
+
+  .launchStage {
+    padding: 14px;
+  }
+
+  .launchCard {
+    padding: 38px 24px 42px;
+  }
+
+  .launchCard .avatar.large {
+    margin-bottom: 32px;
+    width: 92px;
+    height: 92px;
+  }
+
+  .launchCard h1 {
+    font-size: 32px;
+  }
+
+  .launchHandle,
+  .launchUsers,
+  .launchFootnote {
+    font-size: 18px;
+  }
+
+  .launchCopy {
+    font-size: 20px;
+  }
+
+  .launchButton {
+    min-height: 60px;
+    font-size: 20px;
   }
 
   .phoneFrame {

@@ -63,6 +63,84 @@ const botUsername = (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? 'ChattyLin
 const appName = 'Aqbota';
 
 export default function Home() {
+  const [launchState, setLaunchState] = useState<'checking' | 'telegram' | 'browser'>('checking');
+
+  useEffect(() => {
+    let attempts = 0;
+    let timer: number | undefined;
+
+    const decideLaunchState = () => {
+      const webApp = window.Telegram?.WebApp;
+      const hasTelegramLaunchData = Boolean(
+        webApp?.initData ||
+        webApp?.initDataUnsafe?.query_id ||
+        webApp?.initDataUnsafe?.user?.id
+      );
+
+      if (hasTelegramLaunchData) {
+        setLaunchState('telegram');
+        return;
+      }
+
+      attempts += 1;
+      if (attempts >= 5) {
+        setLaunchState('browser');
+        return;
+      }
+
+      timer = window.setTimeout(decideLaunchState, 150);
+    };
+
+    decideLaunchState();
+    return () => {
+      if (timer) window.clearTimeout(timer);
+    };
+  }, []);
+
+  if (launchState === 'checking') {
+    return (
+      <main className="appStage">
+        <section className="phoneFrame">
+          <div className="screen">
+            <StatePanel text="Opening..." />
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (launchState === 'browser') {
+    return <BrowserLaunchPage />;
+  }
+
+  return <MainApp />;
+}
+
+function BrowserLaunchPage() {
+  const botUrl = `https://t.me/${botUsername}`;
+
+  return (
+    <main className="launchStage">
+      <section className="launchCard" aria-labelledby="launch-title">
+        <Avatar large />
+        <h1 id="launch-title">Chatty - English Tutor</h1>
+        <p className="launchHandle">@{botUsername}</p>
+        <p className="launchUsers">80 018 monthly users</p>
+        <div className="launchCopy">
+          <p>Bot No.1 for studying English.</p>
+          <p>Channel: <a href="https://t.me/ChattyEnglishBotChannel">@ChattyEnglishBotChannel</a></p>
+          <p>Any questions: <a href="https://t.me/karpenoid">@karpenoid</a></p>
+        </div>
+        <a className="launchButton" href={botUrl}>Start Bot</a>
+        <p className="launchFootnote">
+          If you have <strong>Telegram</strong>, you can launch <strong>Chatty - English Tutor</strong> right away.
+        </p>
+      </section>
+    </main>
+  );
+}
+
+function MainApp() {
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [mode, setMode] = useState<Mode>(null);
   const [messageId, setMessageId] = useState<number | null>(null);
