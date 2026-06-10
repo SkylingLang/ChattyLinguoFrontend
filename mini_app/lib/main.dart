@@ -8,13 +8,34 @@ void main() {
 }
 
 const companyInfoSections = [
-  ('Contacts', 'Sample contact information will be added here.'),
-  ('Pricing', 'Sample pricing information will be added here.'),
-  ('Terms of Service', 'Sample terms of service will be added here.'),
-  ('Refund Policy', 'Sample refund policy will be added here.'),
-  ('Company Details', 'Sample company details will be added here.'),
-  ('Public Offer', 'Sample public offer text will be added here.'),
-  ('Privacy Policy', 'Sample privacy policy will be added here.'),
+  (
+    'Contacts',
+    'Phone and Telegram: +7 776 661 6110\nEmail: schoolskyling@gmail.com\nWorking hours: Monday to Friday, 10:00-19:00\nActual address: Kazakhstan, Karaganda\nService format: online'
+  ),
+  (
+    'Pricing',
+    'Aqbota online English practice costs 6,000 KZT per month.\nThe plan includes access to the online learning service, English conversation practice, message corrections, saved vocabulary tools, pronunciation analysis where available, and learning progress features.\nThe service is provided online after successful payment.'
+  ),
+  (
+    'Terms of Service',
+    'Services are provided online.\nAfter successful payment, the user receives access to the service automatically or within 24 hours.\nAccess is provided for the period specified in the selected tariff description.\nTo receive the service, the user must provide correct contact details: Telegram, email, or phone number.\nIn case of technical issues, the user may contact support:\nEmail: schoolskyling@gmail.com\nPhone: +7 776 661 6110'
+  ),
+  (
+    'Refund Policy',
+    'The user may refuse the service before the service begins.\nIf the service has not yet been provided, the user may request a refund.\nTo request a refund, email schoolskyling@gmail.com and include: full name, payment date, payment amount, reason for refund, and contact phone number or email.\nRefunds are made using the same payment method used for payment, within timeframes that depend on the bank and payment system.\nIf access to the digital service has already been provided and the user has started using the service, the refund may be limited by the actual volume of services already provided.'
+  ),
+  (
+    'Company Details',
+    'Individual Entrepreneur Muratov\nIIN: 060611551367\nAddress: Kazakhstan, Karaganda, Baiken Ashimova 21\nBank: JSC Kaspi Bank\nKBe: 19\nBIK: CASPKZKA\nAccount number: KZ59722S000051751772\nPhone: +7 702 260 11 77\nEmail: ajbatmuratov2@gmail.com'
+  ),
+  (
+    'Public Offer',
+    'This public offer defines the conditions for using the online English learning service Aqbota.\nBy paying for a tariff or using the service, the user accepts these terms.\nThe provider gives the user access to online educational tools, including English practice, automated corrections, vocabulary features, and related learning materials.\nThe user agrees to provide accurate contact information and use the service only for personal learning purposes.\nThe provider may update service functions, tariffs, and content to improve the product. Current access terms are determined by the tariff selected and paid by the user.'
+  ),
+  (
+    'Privacy Policy',
+    'We collect and process only the information needed to provide the online learning service: Telegram account data, contact details provided by the user, learning messages, saved words, progress data, payment-related information, and technical data required for service operation.\nThis information is used to provide access, support learning features, process payments, improve service quality, and contact the user about the service.\nWe do not sell personal data to third parties.\nData may be processed by trusted technical providers needed for hosting, payments, analytics, and communication.\nThe user may contact schoolskyling@gmail.com to request information about their data or ask for deletion where applicable.'
+  ),
 ];
 
 class ChattyMiniApp extends StatelessWidget {

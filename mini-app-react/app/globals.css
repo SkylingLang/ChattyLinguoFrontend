@@ -1013,6 +1013,7 @@ mark {
   color: #68717a;
   font-size: 16px;
   line-height: 1.35;
+  white-space: pre-line;
 }
 
 .modeSwitcher,
