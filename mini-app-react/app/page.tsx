@@ -11,6 +11,7 @@ import {
   ChevronRight,
   CircleHelp,
   Flame,
+  FileText,
   Gift,
   Globe2,
   Heart,
@@ -19,8 +20,8 @@ import {
   MessageCircle,
   Mic,
   Settings,
-  Sparkles,
   Star,
+  Ticket,
   UserRound,
   Volume2,
   X
@@ -61,6 +62,15 @@ const languages = [
 const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const botUsername = (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? 'ChattyLinguoBot').replace(/^@/, '');
 const appName = 'Aqbota';
+const companyInfoSections = [
+  ['Contacts', 'Sample contact information will be added here.'],
+  ['Pricing', 'Sample pricing information will be added here.'],
+  ['Terms of Service', 'Sample terms of service will be added here.'],
+  ['Refund Policy', 'Sample refund policy will be added here.'],
+  ['Company Details', 'Sample company details will be added here.'],
+  ['Public Offer', 'Sample public offer text will be added here.'],
+  ['Privacy Policy', 'Sample privacy policy will be added here.']
+] as const;
 
 export default function Home() {
   const [launchState, setLaunchState] = useState<'checking' | 'telegram' | 'browser'>('checking');
@@ -223,7 +233,7 @@ function ProfileScreen({ profile }: { profile: UserProfile }) {
       <div className="profileHero">
         <Avatar large />
         <h1>{profile.name || profile.username || 'Learner'}</h1>
-        <p><Star fill="#f2a51a" /> 0</p>
+        <p><Star fill="#f2a51a" /> {profile.stars_count}</p>
       </div>
       <button className="primaryButton" onClick={inviteFriends}>Invite Friends</button>
       <button className="secondaryButton">Share Profile</button>
@@ -555,22 +565,74 @@ function LanguageScreen({ profile, onProfile }: { profile: UserProfile; onProfil
 }
 
 function StarsScreen({ profile }: { profile: UserProfile }) {
+  const [stars, setStars] = useState(profile.stars_count);
+  const [tickets, setTickets] = useState(profile.tickets_count);
+  const [dailyStars, setDailyStars] = useState(profile.daily_message_stars_count);
+  const [exchanging, setExchanging] = useState(false);
+  const [exchangeError, setExchangeError] = useState<string | null>(null);
+  const dailySlots = Array.from({ length: 10 }, (_, index) => index < Math.min(dailyStars, 10));
+
+  async function exchangeStars() {
+    if (exchanging || stars < 100) return;
+    setExchanging(true);
+    setExchangeError(null);
+    try {
+      const next = await api.exchangeStars();
+      setStars(next.stars_count);
+      setTickets(next.tickets_count);
+      setDailyStars(next.daily_message_stars_count);
+    } catch (error) {
+      setExchangeError(error instanceof Error ? error.message : 'Could not exchange stars.');
+    } finally {
+      setExchanging(false);
+    }
+  }
+
   return (
     <div className="page starsPage">
-      <Panel>
-        <div className="starsHero">
-          <Sparkles />
-          <h1>Aqbota Unlimited</h1>
-          <p>Status: {profile.subscription_status}</p>
+      <div className="starsHeader">
+        <div className="starsBalance">
+          <Star fill="#ffb21c" />
+          <strong>{stars}</strong>
         </div>
-        <button className="primaryButton">Monthly subscription · $9.99</button>
-        <button className="secondaryButton">Yearly subscription · $49.99</button>
+        <span>your stars</span>
+      </div>
+
+      <button className="exchangeButton" disabled={stars < 100 || exchanging} onClick={exchangeStars}>
+        Exchange <Star fill="#ffb21c" />100 for <Ticket fill="#ff7bab" />1 ticket
+      </button>
+      {exchangeError ? <p className="starsError">{exchangeError}</p> : null}
+
+      <div className="lotteryCopy">
+        <p>Win an iPhone 17 this New Year 2026! <Gift fill="#ff3f79" /></p>
+        <p>Get lottery tickets to enter.</p>
+        <p>Details: <a href="https://t.me/ChattyEnglishBotChannel">@ChattyEnglishBotChannel</a></p>
+      </div>
+
+      <div className="ticketsBox">
+        {tickets > 0 ? (
+          <span>You have {tickets} lottery {tickets === 1 ? 'ticket' : 'tickets'}.</span>
+        ) : (
+          <span>You do not have tickets yet, exchange stars to participate</span>
+        )}
+      </div>
+
+      <Panel className="dailyStarsPanel">
+        <h2>Daily stars</h2>
+        <div className="dailyStarRow">
+          {dailySlots.map((earned, index) => (
+            <Star key={index} fill={earned ? '#ffb21c' : '#858585'} />
+          ))}
+        </div>
+        <p>Send 10 correct long messages to Chatty every day to maximize this reward!</p>
       </Panel>
     </div>
   );
 }
 
 function SettingsScreen({ profile }: { profile: UserProfile }) {
+  const [showCompanyInfo, setShowCompanyInfo] = useState(false);
+
   async function sendCommand(command: string) {
     const queryId = window.Telegram?.WebApp?.initDataUnsafe?.query_id;
     if (queryId) {
@@ -591,6 +653,10 @@ function SettingsScreen({ profile }: { profile: UserProfile }) {
     window.open(target, '_blank', 'noopener,noreferrer');
   }
 
+  if (showCompanyInfo) {
+    return <CompanyInfoScreen onBack={() => setShowCompanyInfo(false)} />;
+  }
+
   return (
     <div className="page settingsPage">
       <SettingsRow icon={Heart} label="Get unlimited access" premium onClick={() => sendCommand('/unlimited')} />
@@ -606,7 +672,27 @@ function SettingsScreen({ profile }: { profile: UserProfile }) {
       </SettingsGroup>
       <SettingsGroup>
         <SettingsRow icon={HelpCircle} label="How to use Aqbota" onClick={() => sendCommand('/help')} />
+        <SettingsRow icon={FileText} label="Company information" onClick={() => setShowCompanyInfo(true)} />
       </SettingsGroup>
+    </div>
+  );
+}
+
+function CompanyInfoScreen({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="page companyInfoPage">
+      <button className="backButton" onClick={onBack}>
+        <ChevronLeft /> Settings
+      </button>
+      <h1>Company information</h1>
+      <div className="companyInfoList">
+        {companyInfoSections.map(([title, body]) => (
+          <Panel className="companyInfoPanel" key={title}>
+            <h2>{title}</h2>
+            <p>{body}</p>
+          </Panel>
+        ))}
+      </div>
     </div>
   );
 }

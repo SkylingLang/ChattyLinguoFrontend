@@ -11,7 +11,7 @@ from app.db.session import AsyncSessionLocal
 from app.models.enums import MessageRole, MessageType, SubscriptionStatus
 from app.models.user import User
 from app.repositories.messages import get_last_messages, save_message, set_telegram_message_id, trim_old_messages
-from app.repositories.users import register_user, update_streak
+from app.repositories.users import award_message_star, register_user, update_streak
 from app.services.openai_client import openai_service
 from app.services.tutor import generate_chat_reply, generate_voice_reply
 
@@ -30,6 +30,10 @@ def _word_count(text: str) -> int:
 
 def _message_is_correct(original: str, correction: str | None) -> bool:
     return not correction or correction.strip().lower() == original.strip().lower()
+
+
+def _qualifies_for_message_star(text: str, correction: str | None) -> bool:
+    return _word_count(text) >= 20 and _message_is_correct(text, correction)
 
 
 def _is_free_tier_limited(user: User) -> bool:
@@ -96,6 +100,8 @@ async def handle_text(message: Message) -> None:
         user.word_count += _word_count(message.text or "")
         if _message_is_correct(message.text or "", reply.correction):
             user.correct_messages_count += 1
+        if _qualifies_for_message_star(message.text or "", reply.correction):
+            await award_message_star(session, user)
         assistant_message = await save_message(
             session,
             user.id,
@@ -172,6 +178,8 @@ async def handle_voice(message: Message) -> None:
         user.word_count += _word_count(transcript)
         if _message_is_correct(transcript, reply.correction):
             user.correct_messages_count += 1
+        if _qualifies_for_message_star(transcript, reply.correction):
+            await award_message_star(session, user)
         assistant_message = await save_message(
             session,
             user.id,

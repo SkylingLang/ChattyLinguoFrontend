@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 
+MESSAGE_STAR_DAILY_LIMIT = 10
+
 
 async def get_user_by_telegram_id(session: AsyncSession, telegram_user_id: int) -> User | None:
     result = await session.execute(select(User).where(User.telegram_user_id == telegram_user_id))
@@ -54,3 +56,27 @@ async def update_streak(session: AsyncSession, user: User, active_date: date | N
     user.practice_days += 1
     user.last_active_date = today
     await session.flush()
+
+
+async def reset_daily_message_stars_if_needed(
+    session: AsyncSession, user: User, active_date: date | None = None
+) -> None:
+    today = active_date or date.today()
+    if user.daily_message_stars_date == today:
+        return
+
+    user.daily_message_stars_date = today
+    user.daily_message_stars_count = 0
+    await session.flush()
+
+
+async def award_message_star(session: AsyncSession, user: User, active_date: date | None = None) -> bool:
+    await reset_daily_message_stars_if_needed(session, user, active_date)
+
+    if user.daily_message_stars_count >= MESSAGE_STAR_DAILY_LIMIT:
+        return False
+
+    user.daily_message_stars_count += 1
+    user.stars_count += 1
+    await session.flush()
+    return True

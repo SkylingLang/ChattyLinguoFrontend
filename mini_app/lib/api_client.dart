@@ -58,6 +58,14 @@ class ApiClient {
         jsonDecode(response.body) as Map<String, dynamic>);
   }
 
+  Future<ExchangeStarsResult> exchangeStars() async {
+    final response =
+        await http.post(_uri('/api/profile/stars/exchange'), headers: _headers);
+    _throwIfBad(response);
+    return ExchangeStarsResult.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
   Future<List<SavedWord>> getSavedWords() async {
     final response =
         await http.get(_uri('/api/learning/saved-words'), headers: _headers);

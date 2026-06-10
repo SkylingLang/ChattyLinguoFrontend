@@ -19,6 +19,10 @@ class UserProfile(BaseModel):
     subscription_expires_at: datetime | None
     word_count: int
     correct_messages_count: int
+    stars_count: int
+    tickets_count: int
+    daily_message_stars_count: int
+    daily_message_stars_date: date | None
     correct_percent: int
     current_streak: int
     maximum_streak: int
@@ -50,3 +54,9 @@ class UpdateTopicsRequest(BaseModel):
 
 class UpdateLanguageRequest(BaseModel):
     native_language: str
+
+
+class ExchangeStarsResponse(BaseModel):
+    stars_count: int
+    tickets_count: int
+    daily_message_stars_count: int

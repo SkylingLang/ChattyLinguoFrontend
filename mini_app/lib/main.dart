@@ -7,6 +7,16 @@ void main() {
   runApp(const ChattyMiniApp());
 }
 
+const companyInfoSections = [
+  ('Contacts', 'Sample contact information will be added here.'),
+  ('Pricing', 'Sample pricing information will be added here.'),
+  ('Terms of Service', 'Sample terms of service will be added here.'),
+  ('Refund Policy', 'Sample refund policy will be added here.'),
+  ('Company Details', 'Sample company details will be added here.'),
+  ('Public Offer', 'Sample public offer text will be added here.'),
+  ('Privacy Policy', 'Sample privacy policy will be added here.'),
+];
+
 class ChattyMiniApp extends StatelessWidget {
   const ChattyMiniApp({super.key});
 
@@ -103,7 +113,7 @@ class _MiniAppHomeState extends State<MiniAppHome> {
                   children: [
                     ProfileScreen(profile: currentProfile),
                     SavedScreen(api: api),
-                    StarsScreen(profile: currentProfile),
+                    StarsScreen(api: api, profile: currentProfile),
                     LanguageScreen(
                       profile: currentProfile,
                       onChanged: (value) => setState(() => profile = value),
@@ -1008,43 +1018,130 @@ class _SavedScreenState extends State<SavedScreen> {
   }
 }
 
-class StarsScreen extends StatelessWidget {
-  const StarsScreen({required this.profile, super.key});
+class StarsScreen extends StatefulWidget {
+  const StarsScreen({required this.api, required this.profile, super.key});
 
+  final ApiClient api;
   final UserProfile profile;
+
+  @override
+  State<StarsScreen> createState() => _StarsScreenState();
+}
+
+class _StarsScreenState extends State<StarsScreen> {
+  late int stars = widget.profile.starsCount;
+  late int tickets = widget.profile.ticketsCount;
+  late int dailyStars = widget.profile.dailyMessageStarsCount;
+  bool exchanging = false;
+  String? exchangeError;
+
+  Future<void> exchangeStars() async {
+    if (exchanging || stars < 100) return;
+    setState(() {
+      exchanging = true;
+      exchangeError = null;
+    });
+    try {
+      final result = await widget.api.exchangeStars();
+      setState(() {
+        stars = result.starsCount;
+        tickets = result.ticketsCount;
+        dailyStars = result.dailyMessageStarsCount;
+      });
+    } catch (_) {
+      setState(() => exchangeError = 'Could not exchange stars.');
+    } finally {
+      setState(() => exchanging = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(18),
-      child: Panel(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Chatty Unlimited',
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w800)),
-            const SizedBox(height: 18),
-            const Text('✅ Unlimited messages and audio',
-                style: TextStyle(fontSize: 20)),
-            const Text('✅ You can unsubscribe at any time',
-                style: TextStyle(fontSize: 20)),
-            const Text('✅ Subscribers are more likely to improve their level',
-                style: TextStyle(fontSize: 20)),
-            const SizedBox(height: 22),
-            const WideButton(
-                text: 'Monthly subscription · \$9.99/month',
-                color: Color(0xff358fe8),
-                textColor: Colors.white),
-            const SizedBox(height: 12),
-            const WideButton(
-                text: 'Yearly subscription · \$49.99/year',
-                color: Color(0xff358fe8),
-                textColor: Colors.white),
-            const SizedBox(height: 16),
-            Text('Status: ${profile.subscriptionStatus}',
-                style: const TextStyle(color: Color(0xff68717a))),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.star, color: Color(0xffffb21c), size: 78),
+              const SizedBox(width: 18),
+              Text('$stars',
+                  style: const TextStyle(
+                      fontSize: 70, fontWeight: FontWeight.w500)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text('your stars',
+              style: TextStyle(color: Color(0xff5e6975), fontSize: 24)),
+          const SizedBox(height: 18),
+          WideButton(
+            text: 'Exchange 100 stars for 1 ticket',
+            color: const Color(0xffacd2f6),
+            textColor: const Color(0xff62a9f6),
+            onPressed: stars >= 100 && !exchanging ? exchangeStars : null,
+          ),
+          if (exchangeError != null) ...[
+            const SizedBox(height: 8),
+            Text(exchangeError!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Color(0xffc62842))),
           ],
-        ),
+          const SizedBox(height: 18),
+          const Text('Win an iPhone 17 this New Year 2026!',
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 22)),
+          const SizedBox(height: 6),
+          const Text('Get lottery tickets to enter.',
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 22)),
+          const SizedBox(height: 6),
+          const Text('Details: @ChattyEnglishBotChannel',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Color(0xff005aaa), fontSize: 22)),
+          const SizedBox(height: 28),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xffa7aab0)),
+            ),
+            child: Text(
+              tickets > 0
+                  ? 'You have $tickets lottery ${tickets == 1 ? 'ticket' : 'tickets'}.'
+                  : 'You do not have tickets yet, exchange stars to participate',
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xff565a61), fontSize: 19),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Panel(
+            child: Column(
+              children: [
+                const Text('Daily stars',
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: List.generate(
+                    10,
+                    (index) => Icon(Icons.star,
+                        color: index < dailyStars
+                            ? const Color(0xffffb21c)
+                            : const Color(0xff858585),
+                        size: 26),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Send 10 correct long messages to Chatty every day to maximize this reward!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Color(0xff69717c), fontSize: 20),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1179,7 +1276,49 @@ class SettingsScreen extends StatelessWidget {
         ),
         const SizedBox(height: 30),
         const SettingsRow(icon: Icons.help, label: 'How to use Chatty'),
+        SettingsRow(
+          icon: Icons.description,
+          label: 'Company information',
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const CompanyInfoScreen(),
+            ),
+          ),
+        ),
       ],
+    );
+  }
+}
+
+class CompanyInfoScreen extends StatelessWidget {
+  const CompanyInfoScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Company information')),
+      body: ListView.separated(
+        padding: const EdgeInsets.all(18),
+        itemCount: companyInfoSections.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final section = companyInfoSections[index];
+          return Panel(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(section.$1,
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 8),
+                Text(section.$2,
+                    style: const TextStyle(
+                        color: Color(0xff68717a), fontSize: 16, height: 1.35)),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }

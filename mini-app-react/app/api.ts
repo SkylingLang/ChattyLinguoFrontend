@@ -12,6 +12,10 @@ export type UserProfile = {
   subscription_plan?: string | null;
   word_count: number;
   correct_messages_count: number;
+  stars_count: number;
+  tickets_count: number;
+  daily_message_stars_count: number;
+  daily_message_stars_date?: string | null;
   correct_percent: number;
   current_streak: number;
   maximum_streak: number;
@@ -65,6 +69,12 @@ export type PronunciationScore = {
   vocabulary_score: number;
   topic_score: number;
   feedback?: string | null;
+};
+
+export type ExchangeStarsResult = {
+  stars_count: number;
+  tickets_count: number;
+  daily_message_stars_count: number;
 };
 
 declare global {
@@ -148,6 +158,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const api = {
   getProfile: () => request<UserProfile>('/api/profile'),
+  exchangeStars: () => request<ExchangeStarsResult>('/api/profile/stars/exchange', { method: 'POST' }),
   getSavedWords: () => request<SavedWord[]>('/api/learning/saved-words'),
   getMessage: (messageId: number) => request<ChatMessage>(`/api/learning/messages/${messageId}`),
   defineWord: (word: string) => request<WordDefinition>(`/api/learning/word/${encodeURIComponent(word)}`),

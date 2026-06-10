@@ -10,6 +10,9 @@ class UserProfile {
     required this.subscriptionStatus,
     required this.wordCount,
     required this.correctMessagesCount,
+    required this.starsCount,
+    required this.ticketsCount,
+    required this.dailyMessageStarsCount,
     required this.correctPercent,
     required this.currentStreak,
     required this.maximumStreak,
@@ -36,6 +39,9 @@ class UserProfile {
   final String? subscriptionPlan;
   final int wordCount;
   final int correctMessagesCount;
+  final int starsCount;
+  final int ticketsCount;
+  final int dailyMessageStarsCount;
   final int correctPercent;
   final int currentStreak;
   final int maximumStreak;
@@ -61,6 +67,9 @@ class UserProfile {
       subscriptionPlan: json['subscription_plan'] as String?,
       wordCount: json['word_count'] as int? ?? 0,
       correctMessagesCount: json['correct_messages_count'] as int? ?? 0,
+      starsCount: json['stars_count'] as int? ?? 0,
+      ticketsCount: json['tickets_count'] as int? ?? 0,
+      dailyMessageStarsCount: json['daily_message_stars_count'] as int? ?? 0,
       correctPercent: json['correct_percent'] as int? ?? 0,
       currentStreak: json['current_streak'] as int? ?? 0,
       maximumStreak: json['maximum_streak'] as int? ?? 0,
@@ -69,6 +78,26 @@ class UserProfile {
       practiceDays: json['practice_days'] as int? ?? 0,
       lastActiveDate: json['last_active_date'] as String?,
       activeDates: List<String>.from(json['active_dates'] as List? ?? const []),
+    );
+  }
+}
+
+class ExchangeStarsResult {
+  const ExchangeStarsResult({
+    required this.starsCount,
+    required this.ticketsCount,
+    required this.dailyMessageStarsCount,
+  });
+
+  final int starsCount;
+  final int ticketsCount;
+  final int dailyMessageStarsCount;
+
+  factory ExchangeStarsResult.fromJson(Map<String, dynamic> json) {
+    return ExchangeStarsResult(
+      starsCount: json['stars_count'] as int? ?? 0,
+      ticketsCount: json['tickets_count'] as int? ?? 0,
+      dailyMessageStarsCount: json['daily_message_stars_count'] as int? ?? 0,
     );
   }
 }

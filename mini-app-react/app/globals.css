@@ -756,6 +756,146 @@ mark {
   font-size: 20px;
 }
 
+.starsPage {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+  color: #050505;
+}
+
+.starsHeader {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.starsBalance {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.starsBalance svg {
+  width: 78px;
+  height: 78px;
+  color: #f29a13;
+  stroke: #e78100;
+  stroke-width: 1.8;
+}
+
+.starsBalance strong {
+  font-size: 70px;
+  line-height: 1;
+  font-weight: 500;
+}
+
+.starsHeader span {
+  color: #5e6975;
+  font-size: 24px;
+}
+
+.exchangeButton {
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 30px;
+  background: #acd2f6;
+  color: #62a9f6;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.exchangeButton:disabled {
+  cursor: default;
+  opacity: 0.75;
+}
+
+.exchangeButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+.starsError {
+  margin: -10px 0 0;
+  color: #c62842;
+  text-align: center;
+  font-size: 14px;
+}
+
+.lotteryCopy {
+  display: grid;
+  gap: 6px;
+  text-align: center;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.lotteryCopy p {
+  margin: 0;
+}
+
+.lotteryCopy svg {
+  width: 22px;
+  height: 22px;
+  vertical-align: -3px;
+}
+
+.lotteryCopy a {
+  color: #005aaa;
+}
+
+.ticketsBox {
+  display: grid;
+  place-items: center;
+  min-height: 86px;
+  padding: 16px;
+  border: 1px dashed #a7aab0;
+  border-radius: 26px;
+  color: #565a61;
+  text-align: center;
+  font-size: 19px;
+}
+
+.dailyStarsPanel {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  margin-top: 0;
+  text-align: center;
+}
+
+.dailyStarsPanel h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.dailyStarRow {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 11px;
+}
+
+.dailyStarRow svg {
+  width: 100%;
+  max-width: 26px;
+  height: auto;
+  justify-self: center;
+  color: #858585;
+  stroke-width: 1.8;
+}
+
+.dailyStarsPanel p {
+  max-width: 430px;
+  margin: 0;
+  color: #69717c;
+  font-size: 20px;
+  line-height: 1.15;
+}
+
 .primaryButton {
   margin-top: 14px;
   background: var(--blue);
@@ -824,6 +964,55 @@ mark {
 
 .settingsGroup .settingsRow:last-child {
   border-bottom: 0;
+}
+
+.companyInfoPage {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  min-height: 40px;
+  padding: 0 8px 0 0;
+  color: var(--blue-dark);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.backButton svg {
+  width: 24px;
+  height: 24px;
+}
+
+.companyInfoPage h1 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.companyInfoList {
+  display: grid;
+  gap: 12px;
+}
+
+.companyInfoPanel {
+  padding: 16px;
+}
+
+.companyInfoPanel h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.companyInfoPanel p {
+  margin: 0;
+  color: #68717a;
+  font-size: 16px;
+  line-height: 1.35;
 }
 
 .modeSwitcher,
