@@ -10,31 +10,31 @@ void main() {
 const companyInfoSections = [
   (
     'Contacts',
-    'Phone and Telegram: +7 776 661 6110\nEmail: schoolskyling@gmail.com\nWorking hours: Monday to Friday, 10:00-19:00\nActual address: Kazakhstan, Karaganda\nService format: online'
+    'Contact details:\n- Phone and Telegram: +7 776 661 6110\n- Email: schoolskyling@gmail.com\n- Working hours: Monday to Friday, 10:00-19:00\n- Actual address: Kazakhstan, Karaganda\n- Service format: online'
   ),
   (
     'Pricing',
-    'Aqbota online English practice costs 6,000 KZT per month.\nThe plan includes access to the online learning service, English conversation practice, message corrections, saved vocabulary tools, pronunciation analysis where available, and learning progress features.\nThe service is provided online after successful payment.'
+    'Monthly plan:\n- Price: 6,000 KZT per month\n- Online English conversation practice\n- Unlimited messages and audio with Aqbota\n- Mistake explanations, translations, and pronunciation evaluation\n- Saved vocabulary and learning progress tools\n\nThe service is provided online after successful payment.'
   ),
   (
     'Terms of Service',
-    'Services are provided online.\nAfter successful payment, the user receives access to the service automatically or within 24 hours.\nAccess is provided for the period specified in the selected tariff description.\nTo receive the service, the user must provide correct contact details: Telegram, email, or phone number.\nIn case of technical issues, the user may contact support:\nEmail: schoolskyling@gmail.com\nPhone: +7 776 661 6110'
+    'Service conditions:\n- Services are provided online.\n- After successful payment, the user receives access automatically or within 24 hours.\n- Access is provided for the period specified in the selected tariff description.\n- To receive the service, the user must provide correct contact details: Telegram, email, or phone number.\n\nSupport:\n- Email: schoolskyling@gmail.com\n- Phone: +7 776 661 6110'
   ),
   (
     'Refund Policy',
-    'The user may refuse the service before the service begins.\nIf the service has not yet been provided, the user may request a refund.\nTo request a refund, email schoolskyling@gmail.com and include: full name, payment date, payment amount, reason for refund, and contact phone number or email.\nRefunds are made using the same payment method used for payment, within timeframes that depend on the bank and payment system.\nIf access to the digital service has already been provided and the user has started using the service, the refund may be limited by the actual volume of services already provided.'
+    'Refund conditions:\n- The user may refuse the service before the service begins.\n- If the service has not yet been provided, the user may request a refund.\n- Refunds are made using the same payment method used for payment, within timeframes that depend on the bank and payment system.\n- If access to the digital service has already been provided and the user has started using the service, the refund may be limited by the actual volume of services already provided.\n\nTo request a refund, email schoolskyling@gmail.com and include:\n- Full name\n- Payment date\n- Payment amount\n- Reason for refund\n- Contact phone number or email'
   ),
   (
     'Company Details',
-    'Individual Entrepreneur Muratov\nIIN: 060611551367\nAddress: Kazakhstan, Karaganda, Baiken Ashimova 21\nBank: JSC Kaspi Bank\nKBe: 19\nBIK: CASPKZKA\nAccount number: KZ59722S000051751772\nPhone: +7 702 260 11 77\nEmail: ajbatmuratov2@gmail.com'
+    'Business details:\n- Individual Entrepreneur Muratov\n- IIN: 060611551367\n- Address: Kazakhstan, Karaganda, Baiken Ashimova 21\n- Bank: JSC Kaspi Bank\n- KBe: 19\n- BIK: CASPKZKA\n- Account number: KZ59722S000051751772\n- Phone: +7 702 260 11 77\n- Email: ajbatmuratov2@gmail.com'
   ),
   (
     'Public Offer',
-    'This public offer defines the conditions for using the online English learning service Aqbota.\nBy paying for a tariff or using the service, the user accepts these terms.\nThe provider gives the user access to online educational tools, including English practice, automated corrections, vocabulary features, and related learning materials.\nThe user agrees to provide accurate contact information and use the service only for personal learning purposes.\nThe provider may update service functions, tariffs, and content to improve the product. Current access terms are determined by the tariff selected and paid by the user.'
+    'This public offer defines the conditions for using the online English learning service Aqbota.\n\nBy paying for a tariff or using the service, the user accepts these terms.\n\nThe provider gives the user access to:\n- Online educational tools\n- English practice\n- Automated corrections\n- Vocabulary features\n- Related learning materials\n\nThe user agrees to provide accurate contact information and use the service only for personal learning purposes. Current access terms are determined by the tariff selected and paid by the user.'
   ),
   (
     'Privacy Policy',
-    'We collect and process only the information needed to provide the online learning service: Telegram account data, contact details provided by the user, learning messages, saved words, progress data, payment-related information, and technical data required for service operation.\nThis information is used to provide access, support learning features, process payments, improve service quality, and contact the user about the service.\nWe do not sell personal data to third parties.\nData may be processed by trusted technical providers needed for hosting, payments, analytics, and communication.\nThe user may contact schoolskyling@gmail.com to request information about their data or ask for deletion where applicable.'
+    'We collect and process only the information needed to provide the online learning service:\n- Telegram account data\n- Contact details provided by the user\n- Learning messages\n- Saved words\n- Progress data\n- Payment-related information\n- Technical data required for service operation\n\nThis information is used to provide access, support learning features, process payments, improve service quality, and contact the user about the service.\n\nWe do not sell personal data to third parties. The user may contact schoolskyling@gmail.com to request information about their data or ask for deletion where applicable.'
   ),
 ];
 
@@ -1248,8 +1248,14 @@ class SettingsScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
-        const SettingsRow(
-            icon: Icons.favorite, label: 'Get unlimited access', muted: true),
+        SettingsRow(
+          icon: Icons.favorite,
+          label: 'Get unlimited access',
+          muted: true,
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const PlansScreen()),
+          ),
+        ),
         const SizedBox(height: 30),
         const SettingsRow(icon: Icons.group_add, label: 'Invite friends'),
         const SettingsRow(
@@ -1311,8 +1317,110 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-class CompanyInfoScreen extends StatelessWidget {
+class PlansScreen extends StatelessWidget {
+  const PlansScreen({super.key});
+
+  static const features = [
+    'Unlimited messages and audio with Aqbota',
+    'Explanations of mistakes, translations, and pronunciation evaluation',
+    'More practice tools for faster English progress',
+    'Cancel anytime',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Plans')),
+      body: ListView(
+        padding: const EdgeInsets.all(18),
+        children: [
+          const Icon(Icons.favorite, color: Color(0xffff2c62), size: 116),
+          const SizedBox(height: 14),
+          const Text(
+            'Aqbota Unlimited',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: Color(0xff4f62ef),
+                fontSize: 34,
+                fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 22),
+          ...features.map(
+            (feature) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.check_circle_outline,
+                      color: Color(0xff1598ed), size: 26),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(feature, style: const TextStyle(fontSize: 20)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xffeaf3ff),
+              border: Border.all(color: const Color(0xff278cff), width: 1.5),
+              borderRadius: BorderRadius.circular(34),
+            ),
+            child: const Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Unlimited Month',
+                          style: TextStyle(
+                              fontSize: 25, fontWeight: FontWeight.w800)),
+                      SizedBox(height: 6),
+                      Text('Monthly subscription',
+                          style: TextStyle(
+                              color: Color(0xff6b7280), fontSize: 17)),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('6000 ₸',
+                        style:
+                            TextStyle(color: Color(0xff2f72f6), fontSize: 25)),
+                    SizedBox(height: 6),
+                    Text('per month',
+                        style:
+                            TextStyle(color: Color(0xff2f72f6), fontSize: 15)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          const WideButton(
+            text: 'Continue',
+            color: Color(0xff4f62ef),
+            textColor: Colors.white,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class CompanyInfoScreen extends StatefulWidget {
   const CompanyInfoScreen({super.key});
+
+  @override
+  State<CompanyInfoScreen> createState() => _CompanyInfoScreenState();
+}
+
+class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
+  String? openSection = companyInfoSections.first.$1;
 
   @override
   Widget build(BuildContext context) {
@@ -1324,18 +1432,34 @@ class CompanyInfoScreen extends StatelessWidget {
         separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final section = companyInfoSections[index];
+          final open = openSection == section.$1;
           return Panel(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(section.$1,
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.w800)),
-                const SizedBox(height: 8),
-                Text(section.$2,
-                    style: const TextStyle(
-                        color: Color(0xff68717a), fontSize: 16, height: 1.35)),
-              ],
+            child: InkWell(
+              onTap: () =>
+                  setState(() => openSection = open ? null : section.$1),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(section.$1,
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.w800)),
+                      ),
+                      Icon(open ? Icons.expand_less : Icons.expand_more),
+                    ],
+                  ),
+                  if (open) ...[
+                    const SizedBox(height: 12),
+                    Text(section.$2,
+                        style: const TextStyle(
+                            color: Color(0xff68717a),
+                            fontSize: 16,
+                            height: 1.35)),
+                  ],
+                ],
+              ),
             ),
           );
         },

@@ -1000,20 +1000,145 @@ mark {
 }
 
 .companyInfoPanel {
+  width: 100%;
   padding: 16px;
+  border-radius: 22px;
+  background: var(--panel);
+  text-align: left;
+}
+
+.companyInfoPanel > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .companyInfoPanel h2 {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 20px;
 }
 
+.companyInfoPanel svg {
+  width: 22px;
+  height: 22px;
+  color: #68717a;
+  transition: transform 160ms ease;
+}
+
+.companyInfoPanel.open svg {
+  transform: rotate(180deg);
+}
+
 .companyInfoPanel p {
-  margin: 0;
+  margin: 12px 0 0;
   color: #68717a;
   font-size: 16px;
   line-height: 1.35;
   white-space: pre-line;
+}
+
+.plansPage {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+}
+
+.plansHero {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding-top: 4px;
+}
+
+.plansHero svg {
+  width: 116px;
+  height: 116px;
+  color: #ff2b62;
+  filter: drop-shadow(0 8px 12px rgba(255, 43, 98, 0.18));
+}
+
+.plansHero h1 {
+  margin: 0;
+  color: #4f62ef;
+  font-size: 34px;
+  line-height: 1.05;
+  text-align: center;
+}
+
+.planFeatures {
+  display: grid;
+  gap: 10px;
+}
+
+.planFeatures p {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: start;
+  gap: 8px;
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.32;
+}
+
+.planFeatures svg {
+  width: 24px;
+  height: 24px;
+  color: #1598ed;
+  stroke-width: 3;
+}
+
+.planOption {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 92px;
+  padding: 18px 22px;
+  border-radius: 34px;
+  background: #f1f1f4;
+  text-align: left;
+}
+
+.planOption.selected {
+  border: 1.5px solid #278cff;
+  background: #eaf3ff;
+}
+
+.planOption strong,
+.planOption b {
+  display: block;
+  color: #050505;
+  font-size: 25px;
+  line-height: 1.05;
+}
+
+.planOption small {
+  display: block;
+  margin-top: 6px;
+  color: #6b7280;
+  font-size: 17px;
+  font-weight: 400;
+}
+
+.planOption b {
+  color: #2f72f6;
+  text-align: right;
+  font-weight: 500;
+}
+
+.planOption b small {
+  color: #2f72f6;
+  font-size: 15px;
+}
+
+.planContinue {
+  min-height: 60px;
+  border-radius: 30px;
+  background: linear-gradient(90deg, #1598ed, #8730df);
+  color: white;
+  font-size: 25px;
+  font-weight: 800;
 }
 
 .modeSwitcher,
