@@ -13,6 +13,10 @@ const companyInfoSections = [
     'Contact details:\n- Phone and Telegram: +7 776 661 6110\n- Email: schoolskyling@gmail.com\n- Working hours: Monday to Friday, 10:00-19:00\n- Actual address: Kazakhstan, Karaganda\n- Service format: online'
   ),
   (
+    'About service',
+    'Aqbota is an online English practice bot that helps users improve their English through daily conversation.\n\nWhat the bot does:\n- Replies to user messages in English\n- Corrects mistakes in long messages\n- Explains grammar and vocabulary mistakes\n- Helps save and review useful words\n- Supports voice practice and pronunciation evaluation where available\n- Tracks learning progress and daily activity\n\nHow to use it:\n- Open the Telegram bot and press Start\n- Send text or voice messages in English\n- Read the correction and continue the conversation\n- Open the Mini App to view saved words, stars, progress, settings, and service information\n- For technical questions, contact support using the Contacts section'
+  ),
+  (
     'Pricing',
     'Monthly plan:\n- Price: 6,000 KZT per month\n- Online English conversation practice\n- Unlimited messages and audio with Aqbota\n- Mistake explanations, translations, and pronunciation evaluation\n- Saved vocabulary and learning progress tools\n\nThe service is provided online after successful payment.'
   ),
