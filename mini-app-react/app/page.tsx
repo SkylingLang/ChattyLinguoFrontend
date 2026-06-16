@@ -30,6 +30,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   api,
   displayMessage,
+  telegramUserPhotoUrl,
   type ExplainResult,
   type PronunciationScore,
   type SavedWord,
@@ -232,6 +233,7 @@ function MainApp() {
 
 function ProfileScreen({ profile }: { profile: UserProfile }) {
   const today = useMemo(() => new Date(), []);
+  const profilePhotoUrl = useMemo(() => telegramUserPhotoUrl(), []);
   const [visibleMonth, setVisibleMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const activeDays = useMemo(() => new Set(profile.active_dates ?? []), [profile.active_dates]);
   const monthCells = useMemo(() => buildMonthCells(visibleMonth), [visibleMonth]);
@@ -257,7 +259,7 @@ function ProfileScreen({ profile }: { profile: UserProfile }) {
   return (
     <div className="page profilePage">
       <div className="profileHero">
-        <Avatar large />
+        <Avatar large src={profilePhotoUrl} alt={`${profile.name || profile.username || 'Learner'} profile photo`} />
         <h1>{profile.name || profile.username || 'Learner'}</h1>
         <p><Star fill="#f2a51a" /> {profile.stars_count}</p>
       </div>
@@ -907,10 +909,20 @@ function Stat({ value, label }: { value: string; label: string }) {
   );
 }
 
-function Avatar({ large = false }: { large?: boolean }) {
+function Avatar({ large = false, src, alt = 'Aqbota avatar' }: { large?: boolean; src?: string | null; alt?: string }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const showPhoto = Boolean(src && !imageFailed);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [src]);
+
   return (
-    <span className={large ? 'avatar large' : 'avatar'}>
-      <Bot />
+    <span className={[large ? 'avatar large' : 'avatar', showPhoto ? 'photoAvatar' : ''].filter(Boolean).join(' ')}>
+      {showPhoto ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src!} alt={alt} onError={() => setImageFailed(true)} />
+      ) : <Bot />}
     </span>
   );
 }

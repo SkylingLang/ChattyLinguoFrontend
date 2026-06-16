@@ -95,6 +95,7 @@ declare global {
           query_id?: string;
           user?: {
             id?: number;
+            photo_url?: string;
           };
         };
         platform?: string;
@@ -118,6 +119,11 @@ function telegramInitData() {
 function telegramUserId() {
   if (typeof window === 'undefined') return '1';
   return new URLSearchParams(window.location.search).get('telegram_user_id') ?? '1';
+}
+
+export function telegramUserPhotoUrl() {
+  if (typeof window === 'undefined') return null;
+  return window.Telegram?.WebApp?.initDataUnsafe?.user?.photo_url ?? null;
 }
 
 function url(path: string) {
