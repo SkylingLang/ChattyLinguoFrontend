@@ -34,7 +34,6 @@ import {
   type ExplainResult,
   type PronunciationScore,
   type SavedWord,
-  type TranslationResult,
   type UserProfile,
   type WordDefinition
 } from './api';
@@ -44,6 +43,7 @@ type Tab = 'profile' | 'saved' | 'stars' | 'language' | 'settings';
 type Mode = 'text' | 'explain' | 'score' | null;
 
 const languages = [
+  ['GB', 'English'],
   ['FR', 'French'],
   ['DE', 'German'],
   ['ES', 'Spanish'],
@@ -51,12 +51,29 @@ const languages = [
   ['CN', 'Chinese'],
   ['IT', 'Italian'],
   ['KR', 'Korean'],
+  ['KZ', 'Kazakh'],
   ['PT', 'Portuguese'],
   ['RU', 'Russian'],
   ['SA', 'Arabic'],
   ['TR', 'Turkish'],
   ['PL', 'Polish'],
   ['LT', 'Lithuanian'],
+  ['MM', 'Myanmar'],
+  ['NO', 'Norwegian'],
+  ['IR', 'Persian'],
+  ['IN', 'Punjabi'],
+  ['RO', 'Romanian'],
+  ['RS', 'Serbian'],
+  ['SK', 'Slovak'],
+  ['SI', 'Slovenian'],
+  ['ID', 'Sundanese'],
+  ['KE', 'Swahili'],
+  ['SE', 'Swedish'],
+  ['PH', 'Tagalog'],
+  ['TJ', 'Tajik'],
+  ['TH', 'Thai'],
+  ['UA', 'Ukrainian'],
+  ['VN', 'Vietnamese'],
   ['MN', 'Mongolian'],
   ['UZ', 'Uzbek']
 ];
@@ -304,11 +321,13 @@ function ProfileScreen({ profile }: { profile: UserProfile }) {
   );
 }
 
-function TextScreen({ messageId, profile, onLanguage }: { messageId: number | null; profile: UserProfile; onLanguage: () => void }) {
+function TextScreen({ messageId, profile }: { messageId: number | null; profile: UserProfile; onLanguage: () => void }) {
   const message = useAsync(() => messageId ? api.getMessage(messageId) : Promise.reject(new Error('Missing message_id')), [messageId]);
   const [definition, setDefinition] = useState<WordDefinition | null>(null);
   const [definitionError, setDefinitionError] = useState<string | null>(null);
   const [showTranslation, setShowTranslation] = useState(false);
+  const [targetLanguage, setTargetLanguage] = useState(profile.native_language);
+  const [languagePickerOpen, setLanguagePickerOpen] = useState(false);
   const text = displayMessage(message.data);
 
   async function openWord(rawWord: string) {
@@ -327,9 +346,12 @@ function TextScreen({ messageId, profile, onLanguage }: { messageId: number | nu
     return (
       <TranslationScreen
         text={text}
-        targetLanguage={profile.native_language}
+        targetLanguage={targetLanguage}
         onBack={() => setShowTranslation(false)}
-        onLanguage={onLanguage}
+        onLanguage={() => setLanguagePickerOpen(true)}
+        onTargetLanguage={setTargetLanguage}
+        languagePickerOpen={languagePickerOpen}
+        onCloseLanguagePicker={() => setLanguagePickerOpen(false)}
       />
     );
   }
@@ -348,14 +370,25 @@ function TextScreen({ messageId, profile, onLanguage }: { messageId: number | nu
                 return <button key={index} className="wordButton" onClick={() => openWord(clean)}>{piece}</button>;
               })}
             </p>
-            <button className="translateButton" onClick={() => setShowTranslation(true)} disabled={!text.trim()}>Перевести</button>
+            <button className="translateButton" onClick={() => setShowTranslation(true)} disabled={!text.trim()}>Show {targetLanguage}</button>
           </ScrollPanel>
           <h2 className="tapHint">Нажмите на любое слово, чтобы увидеть определение</h2>
           {definitionError ? <StatePanel text="Could not load definition." detail={definitionError} /> : null}
           {definition ? <DefinitionBottomSheet entry={definition} onChange={setDefinition} onClose={() => setDefinition(null)} /> : null}
-          <button className="languageButton" onClick={onLanguage}>
-            <b>{languageCode(profile.native_language)}</b> {profile.native_language}
+          <button className="languageButton" onClick={() => setLanguagePickerOpen(true)}>
+            <b>{languageCode(targetLanguage)}</b> {targetLanguage}
           </button>
+          {languagePickerOpen ? (
+            <TranslationLanguagePicker
+              selectedLanguage={targetLanguage}
+              onSelect={(language) => {
+                setTargetLanguage(language);
+                setLanguagePickerOpen(false);
+                setShowTranslation(true);
+              }}
+              onClose={() => setLanguagePickerOpen(false)}
+            />
+          ) : null}
         </>
       ) : null}
     </div>
@@ -366,53 +399,74 @@ function TranslationScreen({
   text,
   targetLanguage,
   onBack,
-  onLanguage
+  onLanguage,
+  onTargetLanguage,
+  languagePickerOpen,
+  onCloseLanguagePicker
 }: {
   text: string;
   targetLanguage: string;
   onBack: () => void;
   onLanguage: () => void;
+  onTargetLanguage: (language: string) => void;
+  languagePickerOpen: boolean;
+  onCloseLanguagePicker: () => void;
 }) {
   const translation = useAsync(() => api.translateText(text, targetLanguage), [text, targetLanguage]);
 
   return (
     <div className="page translationPage">
-      <div className="screenHeader">
-        <button onClick={onBack} aria-label="Back to transcript"><ChevronLeft /></button>
-        <h1>Translation</h1>
-      </div>
       {translation.loading ? <StatePanel text="Translating..." /> : null}
       {translation.error ? <StatePanel text="Could not translate this text." detail={translation.error} /> : null}
-      {translation.data ? <TranslationResultView data={translation.data} /> : null}
+      {translation.data ? <TranslationResultView translatedText={translation.data.translated_text} onBack={onBack} /> : null}
+      <h2 className="tapHint">Tap any word to see the definition</h2>
       <button className="languageButton" onClick={onLanguage}>
         <b>{languageCode(targetLanguage)}</b> {targetLanguage}
       </button>
+      {languagePickerOpen ? (
+        <TranslationLanguagePicker
+          selectedLanguage={targetLanguage}
+          onSelect={(language) => {
+            onTargetLanguage(language);
+            onCloseLanguagePicker();
+          }}
+          onClose={onCloseLanguagePicker}
+        />
+      ) : null}
     </div>
   );
 }
 
-function TranslationResultView({ data }: { data: TranslationResult }) {
+function TranslationResultView({ translatedText, onBack }: { translatedText: string; onBack: () => void }) {
   return (
     <ScrollPanel>
-      <div className="translationBlock">
-        <span>Original</span>
-        <p>{data.original_text}</p>
-      </div>
-      <div className="translationBlock translated">
-        <span>Translation</span>
-        <p>{data.translated_text}</p>
-      </div>
-      {data.word_by_word.length > 0 ? (
-        <div className="wordByWord">
-          {data.word_by_word.map((row, index) => (
-            <div key={`${row.word}-${index}`}>
-              <b>{row.word}</b>
-              <span>{row.translation}</span>
-            </div>
+      <p className="largeText translatedLargeText">{translatedText}</p>
+      <button className="translateButton" onClick={onBack}>Translate</button>
+    </ScrollPanel>
+  );
+}
+
+function TranslationLanguagePicker({
+  selectedLanguage,
+  onSelect,
+  onClose
+}: {
+  selectedLanguage: string;
+  onSelect: (language: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="sheetBackdrop languagePickerBackdrop" onClick={onClose}>
+      <div className="sheetSurface languagePickerSheet" onClick={(event) => event.stopPropagation()}>
+        <div className="languageRows translationLanguageRows">
+          {languages.map(([code, name]) => (
+            <button className={name === selectedLanguage ? 'selected' : ''} onClick={() => onSelect(name)} key={name}>
+              <span><b>{code}</b> {name}</span>
+            </button>
           ))}
         </div>
-      ) : null}
-    </ScrollPanel>
+      </div>
+    </div>
   );
 }
 
