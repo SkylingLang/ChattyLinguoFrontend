@@ -419,7 +419,6 @@ function TranslationScreen({
       {translation.loading ? <StatePanel text="Translating..." /> : null}
       {translation.error ? <StatePanel text="Could not translate this text." detail={translation.error} /> : null}
       {translation.data ? <TranslationResultView translatedText={translation.data.translated_text} onBack={onBack} /> : null}
-      <h2 className="tapHint">Tap any word to see the definition</h2>
       <button className="languageButton" onClick={onLanguage}>
         <b>{languageCode(targetLanguage)}</b> {targetLanguage}
       </button>
