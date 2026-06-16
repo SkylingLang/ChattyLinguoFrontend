@@ -33,6 +33,7 @@ import {
   type ExplainResult,
   type PronunciationScore,
   type SavedWord,
+  type TranslationResult,
   type UserProfile,
   type WordDefinition
 } from './api';
@@ -305,6 +306,7 @@ function TextScreen({ messageId, profile, onLanguage }: { messageId: number | nu
   const message = useAsync(() => messageId ? api.getMessage(messageId) : Promise.reject(new Error('Missing message_id')), [messageId]);
   const [definition, setDefinition] = useState<WordDefinition | null>(null);
   const [definitionError, setDefinitionError] = useState<string | null>(null);
+  const [showTranslation, setShowTranslation] = useState(false);
   const text = displayMessage(message.data);
 
   async function openWord(rawWord: string) {
@@ -317,6 +319,17 @@ function TextScreen({ messageId, profile, onLanguage }: { messageId: number | nu
     } catch (error) {
       setDefinitionError(error instanceof Error ? error.message : 'Could not load this word.');
     }
+  }
+
+  if (!message.loading && !message.error && showTranslation) {
+    return (
+      <TranslationScreen
+        text={text}
+        targetLanguage={profile.native_language}
+        onBack={() => setShowTranslation(false)}
+        onLanguage={onLanguage}
+      />
+    );
   }
 
   return (
@@ -333,7 +346,7 @@ function TextScreen({ messageId, profile, onLanguage }: { messageId: number | nu
                 return <button key={index} className="wordButton" onClick={() => openWord(clean)}>{piece}</button>;
               })}
             </p>
-            <button className="translateButton">Перевести</button>
+            <button className="translateButton" onClick={() => setShowTranslation(true)} disabled={!text.trim()}>Перевести</button>
           </ScrollPanel>
           <h2 className="tapHint">Нажмите на любое слово, чтобы увидеть определение</h2>
           {definitionError ? <StatePanel text="Could not load definition." detail={definitionError} /> : null}
@@ -344,6 +357,60 @@ function TextScreen({ messageId, profile, onLanguage }: { messageId: number | nu
         </>
       ) : null}
     </div>
+  );
+}
+
+function TranslationScreen({
+  text,
+  targetLanguage,
+  onBack,
+  onLanguage
+}: {
+  text: string;
+  targetLanguage: string;
+  onBack: () => void;
+  onLanguage: () => void;
+}) {
+  const translation = useAsync(() => api.translateText(text, targetLanguage), [text, targetLanguage]);
+
+  return (
+    <div className="page translationPage">
+      <div className="screenHeader">
+        <button onClick={onBack} aria-label="Back to transcript"><ChevronLeft /></button>
+        <h1>Translation</h1>
+      </div>
+      {translation.loading ? <StatePanel text="Translating..." /> : null}
+      {translation.error ? <StatePanel text="Could not translate this text." detail={translation.error} /> : null}
+      {translation.data ? <TranslationResultView data={translation.data} /> : null}
+      <button className="languageButton" onClick={onLanguage}>
+        <b>{languageCode(targetLanguage)}</b> {targetLanguage}
+      </button>
+    </div>
+  );
+}
+
+function TranslationResultView({ data }: { data: TranslationResult }) {
+  return (
+    <ScrollPanel>
+      <div className="translationBlock">
+        <span>Original</span>
+        <p>{data.original_text}</p>
+      </div>
+      <div className="translationBlock translated">
+        <span>Translation</span>
+        <p>{data.translated_text}</p>
+      </div>
+      {data.word_by_word.length > 0 ? (
+        <div className="wordByWord">
+          {data.word_by_word.map((row, index) => (
+            <div key={`${row.word}-${index}`}>
+              <b>{row.word}</b>
+              <span>{row.translation}</span>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </ScrollPanel>
   );
 }
 

@@ -71,6 +71,15 @@ export type PronunciationScore = {
   feedback?: string | null;
 };
 
+export type TranslationResult = {
+  original_text: string;
+  translated_text: string;
+  word_by_word: Array<{
+    word: string;
+    translation: string;
+  }>;
+};
+
 export type ExchangeStarsResult = {
   stars_count: number;
   tickets_count: number;
@@ -162,6 +171,11 @@ export const api = {
   getSavedWords: () => request<SavedWord[]>('/api/learning/saved-words'),
   getMessage: (messageId: number) => request<ChatMessage>(`/api/learning/messages/${messageId}`),
   defineWord: (word: string) => request<WordDefinition>(`/api/learning/word/${encodeURIComponent(word)}`),
+  translateText: (text: string, targetLanguage: string) =>
+    request<TranslationResult>('/api/learning/translate', {
+      method: 'POST',
+      body: JSON.stringify({ text, target_language: targetLanguage })
+    }),
   getScore: (messageId: number) => request<PronunciationScore>(`/api/learning/messages/${messageId}/score`),
   getExplanation: (messageId: number) => request<ExplainResult>(`/api/learning/messages/${messageId}/explain`),
   askExplanationFollowUp: async (messageId: number, question: string) => {
