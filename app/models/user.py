@@ -16,6 +16,7 @@ class User(Base):
     name: Mapped[str | None] = mapped_column(String(255))
     username: Mapped[str | None] = mapped_column(String(255), index=True)
     native_language: Mapped[str] = mapped_column(String(64), default="English")
+    interface_language: Mapped[str] = mapped_column(String(8), default="en")
     english_level: Mapped[str] = mapped_column(String(64), default="Intermediate")
     selected_voice: Mapped[str] = mapped_column(String(64), default="Alexa")
     voice_enabled: Mapped[bool] = mapped_column(default=True)

@@ -1025,6 +1025,11 @@ mark {
   background: var(--panel);
 }
 
+.settingsSubTitle {
+  margin: 0 0 16px;
+  font-size: 28px;
+}
+
 .settingsGroup .settingsRow {
   border-bottom: 1px solid white;
 }

@@ -3,6 +3,7 @@ export type UserProfile = {
   name?: string | null;
   username?: string | null;
   native_language: string;
+  interface_language: 'en' | 'ru';
   english_level: string;
   selected_voice: string;
   voice_enabled: boolean;
@@ -212,6 +213,11 @@ export const api = {
     request<UserProfile>('/api/profile/language', {
       method: 'PATCH',
       body: JSON.stringify({ native_language: language })
+    }),
+  updateInterfaceLanguage: (language: 'en' | 'ru') =>
+    request<UserProfile>('/api/profile/interface-language', {
+      method: 'PATCH',
+      body: JSON.stringify({ interface_language: language })
     }),
   updateLevel: (level: string) =>
     request<UserProfile>('/api/profile/level', {

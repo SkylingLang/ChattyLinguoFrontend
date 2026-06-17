@@ -6,6 +6,7 @@ from app.db.session import get_db_session
 from app.models.user import User
 from app.repositories.users import reset_daily_message_stars_if_needed
 from app.schemas.user import (
+    UpdateInterfaceLanguageRequest,
     UpdateLanguageRequest,
     UpdateLevelRequest,
     UpdateTopicsRequest,
@@ -99,5 +100,18 @@ async def update_language(
     session: AsyncSession = Depends(get_db_session),
 ) -> User:
     user.native_language = payload.native_language
+    await session.commit()
+    return user
+
+
+@router.patch("/interface-language", response_model=UserProfile)
+async def update_interface_language(
+    payload: UpdateInterfaceLanguageRequest,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db_session),
+) -> User:
+    if payload.interface_language not in {"en", "ru"}:
+        raise HTTPException(status_code=400, detail="Unsupported interface language.")
+    user.interface_language = payload.interface_language
     await session.commit()
     return user

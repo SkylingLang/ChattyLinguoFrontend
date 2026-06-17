@@ -156,11 +156,13 @@ async def score_callback(callback: CallbackQuery) -> None:
 
     if callback.message:
         await callback.message.edit_reply_markup(
-            reply_markup=response_actions(message_id, allow_score=True)
+            reply_markup=response_actions(
+                message_id, allow_score=True, interface_language=user.interface_language
+            )
         )
         await callback.message.answer(
             "Pronunciation analysis is ready.",
-            reply_markup=analysis_button(message_id, callback.from_user.id),
+            reply_markup=analysis_button(message_id, callback.from_user.id, user.interface_language),
         )
     await callback.answer()
 
@@ -187,7 +189,12 @@ async def help_callback(callback: CallbackQuery) -> None:
 
     if callback.message:
         await callback.message.edit_reply_markup(
-            reply_markup=voice_response_actions(message_id, callback.from_user.id, help_checked=True)
+            reply_markup=voice_response_actions(
+                message_id,
+                callback.from_user.id,
+                help_checked=True,
+                interface_language=user.interface_language,
+            )
         )
     await callback.message.answer(
         f"<blockquote>{escape(payload.text)}</blockquote>",

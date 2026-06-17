@@ -119,6 +119,7 @@ async def handle_text(message: Message) -> None:
             assistant_message.id,
             telegram_user_id=tg_user.id,
             has_correction=bool(reply.correction),
+            interface_language=user.interface_language,
         ),
         parse_mode=ParseMode.HTML,
     )
@@ -128,12 +129,17 @@ async def handle_text(message: Message) -> None:
         if speech:
             sent = await message.answer_voice(
                 BufferedInputFile(speech, filename="chatty-reply.mp3"),
-                reply_markup=voice_response_actions(assistant_message.id, tg_user.id),
+                reply_markup=voice_response_actions(
+                    assistant_message.id, tg_user.id, interface_language=user.interface_language
+                ),
             )
             sent_message_id = sent.message_id
     else:
         sent = await message.answer(
-            reply.reply_text, reply_markup=voice_response_actions(assistant_message.id, tg_user.id)
+            reply.reply_text,
+            reply_markup=voice_response_actions(
+                assistant_message.id, tg_user.id, interface_language=user.interface_language
+            ),
         )
         sent_message_id = sent.message_id
     if sent_message_id:
@@ -198,6 +204,7 @@ async def handle_voice(message: Message) -> None:
             telegram_user_id=tg_user.id,
             has_correction=bool(reply.correction),
             allow_score=True,
+            interface_language=user.interface_language,
         ),
         parse_mode=ParseMode.HTML,
     )
@@ -207,12 +214,17 @@ async def handle_voice(message: Message) -> None:
         if speech:
             sent = await message.answer_voice(
                 BufferedInputFile(speech, filename="chatty-reply.mp3"),
-                reply_markup=voice_response_actions(assistant_message.id, tg_user.id),
+                reply_markup=voice_response_actions(
+                    assistant_message.id, tg_user.id, interface_language=user.interface_language
+                ),
             )
             sent_message_id = sent.message_id
     else:
         sent = await message.answer(
-            reply.reply_text, reply_markup=voice_response_actions(assistant_message.id, tg_user.id)
+            reply.reply_text,
+            reply_markup=voice_response_actions(
+                assistant_message.id, tg_user.id, interface_language=user.interface_language
+            ),
         )
         sent_message_id = sent.message_id
     if sent_message_id:

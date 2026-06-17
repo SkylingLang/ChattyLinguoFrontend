@@ -9,6 +9,7 @@ class UserProfile(BaseModel):
     name: str | None
     username: str | None
     native_language: str
+    interface_language: str
     english_level: str
     selected_voice: str
     voice_enabled: bool
@@ -54,6 +55,10 @@ class UpdateTopicsRequest(BaseModel):
 
 class UpdateLanguageRequest(BaseModel):
     native_language: str
+
+
+class UpdateInterfaceLanguageRequest(BaseModel):
+    interface_language: str
 
 
 class ExchangeStarsResponse(BaseModel):

@@ -41,6 +41,7 @@ import { useAsync } from './useAsync';
 
 type Tab = 'profile' | 'saved' | 'stars' | 'language' | 'settings';
 type Mode = 'text' | 'explain' | 'score' | null;
+type InterfaceLanguage = 'en' | 'ru';
 
 const languages = [
   ['GB', 'English'],
@@ -81,40 +82,190 @@ const languages = [
 const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const botUsername = (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? 'ChattyLinguoBot').replace(/^@/, '');
 const appName = 'Aqbota';
-const companyInfoSections = [
-  [
-    'Contacts',
-    'Contact details:\n- Phone and Telegram: +7 776 661 6110\n- Email: schoolskyling@gmail.com\n- Working hours: Monday to Friday, 10:00-19:00\n- Actual address: Kazakhstan, Karaganda\n- Service format: online'
-  ],
-  [
-    'About service',
-    'Aqbota is an online English practice bot that helps users improve their English through daily conversation.\n\nWhat the bot does:\n- Replies to user messages in English\n- Corrects mistakes in long messages\n- Explains grammar and vocabulary mistakes\n- Helps save and review useful words\n- Supports voice practice and pronunciation evaluation where available\n- Tracks learning progress and daily activity\n\nHow to use it:\n- Open the Telegram bot and press Start\n- Send text or voice messages in English\n- Read the correction and continue the conversation\n- Open the Mini App to view saved words, stars, progress, settings, and service information\n- For technical questions, contact support using the Contacts section'
-  ],
-  [
-    'Pricing',
-    'Monthly plan:\n- Price: 6,000 KZT per month\n- Online English conversation practice\n- Unlimited messages and audio with Aqbota\n- Mistake explanations, translations, and pronunciation evaluation\n- Saved vocabulary and learning progress tools\n\nThe service is provided online after successful payment.'
-  ],
-  [
-    'Terms of Service',
-    'Service conditions:\n- Services are provided online.\n- After successful payment, the user receives access automatically or within 24 hours.\n- Access is provided for the period specified in the selected tariff description.\n- To receive the service, the user must provide correct contact details: Telegram, email, or phone number.\n\nSupport:\n- Email: schoolskyling@gmail.com\n- Phone: +7 776 661 6110'
-  ],
-  [
-    'Refund Policy',
-    'Refund conditions:\n- The user may refuse the service before the service begins.\n- If the service has not yet been provided, the user may request a refund.\n- Refunds are made using the same payment method used for payment, within timeframes that depend on the bank and payment system.\n- If access to the digital service has already been provided and the user has started using the service, the refund may be limited by the actual volume of services already provided.\n\nTo request a refund, email schoolskyling@gmail.com and include:\n- Full name\n- Payment date\n- Payment amount\n- Reason for refund\n- Contact phone number or email'
-  ],
-  [
-    'Company Details',
-    'Business details:\n- Individual Entrepreneur Muratov\n- IIN: 060611551367\n- Address: Kazakhstan, Karaganda, Baiken Ashimova 21\n- Bank: JSC Kaspi Bank\n- KBe: 19\n- BIK: CASPKZKA\n- Account number: KZ59722S000051751772\n- Phone: +7 702 260 11 77\n- Email: ajbatmuratov2@gmail.com'
-  ],
-  [
-    'Public Offer',
-    'This public offer defines the conditions for using the online English learning service Aqbota.\n\nBy paying for a tariff or using the service, the user accepts these terms.\n\nThe provider gives the user access to:\n- Online educational tools\n- English practice\n- Automated corrections\n- Vocabulary features\n- Related learning materials\n\nThe user agrees to provide accurate contact information and use the service only for personal learning purposes. Current access terms are determined by the tariff selected and paid by the user.'
-  ],
-  [
-    'Privacy Policy',
-    'We collect and process only the information needed to provide the online learning service:\n- Telegram account data\n- Contact details provided by the user\n- Learning messages\n- Saved words\n- Progress data\n- Payment-related information\n- Technical data required for service operation\n\nThis information is used to provide access, support learning features, process payments, improve service quality, and contact the user about the service.\n\nWe do not sell personal data to third parties. The user may contact schoolskyling@gmail.com to request information about their data or ask for deletion where applicable.'
-  ]
-] as const;
+const ui = {
+  en: {
+    opening: 'Opening...',
+    loading: 'Loading...',
+    openBotFirst: 'Open the bot with /start first, then reopen this Mini App.',
+    learner: 'Learner',
+    inviteFriends: 'Invite Friends',
+    shareProfile: 'Share Profile',
+    daysStreak: 'days streak',
+    wordsSaid: 'Words Said',
+    maxStreak: 'Max streak',
+    correct: 'Correct',
+    messagesSent: 'Messages Sent',
+    loadingTranscript: 'Loading transcript...',
+    couldNotLoadTranscript: 'Could not load transcript.',
+    couldNotLoadWord: 'Could not load this word.',
+    couldNotLoadDefinition: 'Could not load definition.',
+    showLanguage: (language: string) => `Show ${language}`,
+    tapAnyWord: 'Tap any word to see the definition',
+    translating: 'Translating...',
+    couldNotTranslate: 'Could not translate this text.',
+    translate: 'Translate',
+    loadingExplanation: 'Loading explanation...',
+    couldNotLoadExplanation: 'Could not load explanation.',
+    missingMessage: 'Missing message_id',
+    askFollowUp: 'Ask a follow-up question...',
+    loadingSavedWords: 'Loading saved words...',
+    couldNotLoadSavedWords: 'Could not load saved words.',
+    emptySaved: 'You do not have any words saved yet! To save a word:\n1. Open transcription of an Aqbota response\n2. Click on a word you want to save\n3. Click the bookmark icon',
+    loadingScore: 'Loading pronunciation analysis...',
+    couldNotLoadScore: 'Could not load pronunciation score.',
+    pronunciationAnalysis: 'Pronunciation Analysis',
+    transcript: 'Transcript',
+    metrics: ['Accuracy', 'Fluency', 'Prosody', 'Grammar', 'Vocabulary', 'Topic'],
+    saving: 'Saving...',
+    settings: 'Settings',
+    getUnlimited: 'Get unlimited access',
+    giftSubscription: 'Gift subscription',
+    changeVoice: (voice: string) => `Change Aqbota voice · ${voice}`,
+    changeLevel: (level: string) => `Change your English level · ${level}`,
+    changeSpeed: (speed: number) => `Change Aqbota voice speed · ${speed}x`,
+    chooseTopics: 'Choose topics',
+    howToUse: 'How to use Aqbota',
+    interfaceLanguage: (language: InterfaceLanguage) => `Interface language · ${language === 'ru' ? 'Russian' : 'English'}`,
+    companyInformation: 'Company information',
+    chooseInterfaceLanguage: 'Interface language',
+    english: 'English',
+    russian: 'Russian',
+    unlimitedFeatures: [
+      'Unlimited messages and audio with Aqbota',
+      'Explanations of mistakes, translations, and pronunciation evaluation',
+      'More practice tools for faster English progress',
+      'Cancel anytime'
+    ],
+    unlimitedMonth: 'Unlimited Month',
+    monthlySubscription: 'Monthly subscription',
+    perMonth: 'per month',
+    continue: 'Continue',
+    yourStars: 'your stars',
+    exchangeStars: 'Exchange',
+    exchangeConnector: 'for',
+    oneTicket: '1 ticket',
+    lotteryTitle: 'Win an iPhone 17 this New Year 2026!',
+    lotterySubtitle: 'Get lottery tickets to enter.',
+    details: 'Details:',
+    tickets: (count: number) => `You have ${count} lottery ${count === 1 ? 'ticket' : 'tickets'}.`,
+    noTickets: 'You do not have tickets yet, exchange stars to participate',
+    dailyStars: 'Daily stars',
+    dailyStarsHint: 'Send 10 correct long messages to Chatty every day to maximize this reward!',
+    nav: ['Profile', 'Saved', 'Stars', 'Language', 'Settings'],
+    removeSavedWord: 'Remove saved word',
+    saveWord: 'Save word',
+    closeDefinition: 'Close definition',
+    sendQuestion: 'Send question',
+    previousMonth: 'Previous month',
+    nextMonth: 'Next month',
+    companySections: [
+      ['Contacts', 'Contact details:\n- Phone and Telegram: +7 776 661 6110\n- Email: schoolskyling@gmail.com\n- Working hours: Monday to Friday, 10:00-19:00\n- Actual address: Kazakhstan, Karaganda\n- Service format: online'],
+      ['About service', 'Aqbota is an online English practice bot that helps users improve their English through daily conversation.\n\nWhat the bot does:\n- Replies to user messages in English\n- Corrects mistakes in long messages\n- Explains grammar and vocabulary mistakes\n- Helps save and review useful words\n- Supports voice practice and pronunciation evaluation where available\n- Tracks learning progress and daily activity\n\nHow to use it:\n- Open the Telegram bot and press Start\n- Send text or voice messages in English\n- Read the correction and continue the conversation\n- Open the Mini App to view saved words, stars, progress, settings, and service information\n- For technical questions, contact support using the Contacts section'],
+      ['Pricing', 'Monthly plan:\n- Price: 6,000 KZT per month\n- Online English conversation practice\n- Unlimited messages and audio with Aqbota\n- Mistake explanations, translations, and pronunciation evaluation\n- Saved vocabulary and learning progress tools\n\nThe service is provided online after successful payment.'],
+      ['Terms of Service', 'Service conditions:\n- Services are provided online.\n- After successful payment, the user receives access automatically or within 24 hours.\n- Access is provided for the period specified in the selected tariff description.\n- To receive the service, the user must provide correct contact details: Telegram, email, or phone number.\n\nSupport:\n- Email: schoolskyling@gmail.com\n- Phone: +7 776 661 6110'],
+      ['Refund Policy', 'Refund conditions:\n- The user may refuse the service before the service begins.\n- If the service has not yet been provided, the user may request a refund.\n- Refunds are made using the same payment method used for payment, within timeframes that depend on the bank and payment system.\n- If access to the digital service has already been provided and the user has started using the service, the refund may be limited by the actual volume of services already provided.\n\nTo request a refund, email schoolskyling@gmail.com and include:\n- Full name\n- Payment date\n- Payment amount\n- Reason for refund\n- Contact phone number or email'],
+      ['Company Details', 'Business details:\n- Individual Entrepreneur Muratov\n- IIN: 060611551367\n- Address: Kazakhstan, Karaganda, Baiken Ashimova 21\n- Bank: JSC Kaspi Bank\n- KBe: 19\n- BIK: CASPKZKA\n- Account number: KZ59722S000051751772\n- Phone: +7 702 260 11 77\n- Email: ajbatmuratov2@gmail.com'],
+      ['Public Offer', 'This public offer defines the conditions for using the online English learning service Aqbota.\n\nBy paying for a tariff or using the service, the user accepts these terms.\n\nThe provider gives the user access to:\n- Online educational tools\n- English practice\n- Automated corrections\n- Vocabulary features\n- Related learning materials\n\nThe user agrees to provide accurate contact information and use the service only for personal learning purposes. Current access terms are determined by the tariff selected and paid by the user.'],
+      ['Privacy Policy', 'We collect and process only the information needed to provide the online learning service:\n- Telegram account data\n- Contact details provided by the user\n- Learning messages\n- Saved words\n- Progress data\n- Payment-related information\n- Technical data required for service operation\n\nThis information is used to provide access, support learning features, process payments, improve service quality, and contact the user about the service.\n\nWe do not sell personal data to third parties. The user may contact schoolskyling@gmail.com to request information about their data or ask for deletion where applicable.']
+    ]
+  },
+  ru: {
+    opening: 'Открываем...',
+    loading: 'Загрузка...',
+    openBotFirst: 'Сначала откройте бота через /start, затем снова откройте Mini App.',
+    learner: 'Ученик',
+    inviteFriends: 'Пригласить друзей',
+    shareProfile: 'Поделиться профилем',
+    daysStreak: 'дней подряд',
+    wordsSaid: 'Сказано слов',
+    maxStreak: 'Макс. серия',
+    correct: 'Правильно',
+    messagesSent: 'Сообщений',
+    loadingTranscript: 'Загружаем текст...',
+    couldNotLoadTranscript: 'Не удалось загрузить текст.',
+    couldNotLoadWord: 'Не удалось загрузить это слово.',
+    couldNotLoadDefinition: 'Не удалось загрузить определение.',
+    showLanguage: (language: string) => `Показать ${language}`,
+    tapAnyWord: 'Нажмите на любое слово, чтобы увидеть определение',
+    translating: 'Переводим...',
+    couldNotTranslate: 'Не удалось перевести этот текст.',
+    translate: 'Перевести',
+    loadingExplanation: 'Загружаем объяснение...',
+    couldNotLoadExplanation: 'Не удалось загрузить объяснение.',
+    missingMessage: 'Не найден message_id',
+    askFollowUp: 'Задайте уточняющий вопрос...',
+    loadingSavedWords: 'Загружаем сохраненные слова...',
+    couldNotLoadSavedWords: 'Не удалось загрузить сохраненные слова.',
+    emptySaved: 'У вас пока нет сохраненных слов. Чтобы сохранить слово:\n1. Откройте текст ответа Aqbota\n2. Нажмите на нужное слово\n3. Нажмите значок закладки',
+    loadingScore: 'Загружаем анализ произношения...',
+    couldNotLoadScore: 'Не удалось загрузить оценку произношения.',
+    pronunciationAnalysis: 'Анализ произношения',
+    transcript: 'Текст',
+    metrics: ['Точность', 'Беглость', 'Интонация', 'Грамматика', 'Словарь', 'Тема'],
+    saving: 'Сохраняем...',
+    settings: 'Настройки',
+    getUnlimited: 'Получить безлимитный доступ',
+    giftSubscription: 'Подарить подписку',
+    changeVoice: (voice: string) => `Изменить голос Aqbota · ${voice}`,
+    changeLevel: (level: string) => `Изменить уровень английского · ${level}`,
+    changeSpeed: (speed: number) => `Изменить скорость голоса Aqbota · ${speed}x`,
+    chooseTopics: 'Выбрать темы',
+    howToUse: 'Как пользоваться Aqbota',
+    interfaceLanguage: (language: InterfaceLanguage) => `Язык интерфейса · ${language === 'ru' ? 'Русский' : 'Английский'}`,
+    companyInformation: 'Информация о компании',
+    chooseInterfaceLanguage: 'Язык интерфейса',
+    english: 'Английский',
+    russian: 'Русский',
+    unlimitedFeatures: [
+      'Безлимитные сообщения и аудио с Aqbota',
+      'Объяснения ошибок, переводы и оценка произношения',
+      'Больше инструментов для быстрого прогресса в английском',
+      'Можно отменить в любое время'
+    ],
+    unlimitedMonth: 'Безлимит на месяц',
+    monthlySubscription: 'Ежемесячная подписка',
+    perMonth: 'в месяц',
+    continue: 'Продолжить',
+    yourStars: 'ваши звезды',
+    exchangeStars: 'Обменять',
+    exchangeConnector: 'на',
+    oneTicket: '1 билет',
+    lotteryTitle: 'Выиграйте iPhone 17 к Новому 2026 году!',
+    lotterySubtitle: 'Получайте билеты для участия.',
+    details: 'Подробности:',
+    tickets: (count: number) => `У вас ${count} ${count === 1 ? 'лотерейный билет' : 'лотерейных билетов'}.`,
+    noTickets: 'У вас пока нет билетов, обменяйте звезды для участия',
+    dailyStars: 'Ежедневные звезды',
+    dailyStarsHint: 'Отправляйте 10 правильных длинных сообщений Chatty каждый день, чтобы получить максимум награды!',
+    nav: ['Профиль', 'Слова', 'Звезды', 'Язык', 'Настройки'],
+    removeSavedWord: 'Удалить сохраненное слово',
+    saveWord: 'Сохранить слово',
+    closeDefinition: 'Закрыть определение',
+    sendQuestion: 'Отправить вопрос',
+    previousMonth: 'Предыдущий месяц',
+    nextMonth: 'Следующий месяц',
+    companySections: [
+      ['Контакты', 'Контактные данные:\n- Телефон и Telegram: +7 776 661 6110\n- Email: schoolskyling@gmail.com\n- Рабочее время: с понедельника по пятницу, 10:00-19:00\n- Фактический адрес: Казахстан, Караганда\n- Формат услуги: онлайн'],
+      ['О сервисе', 'Aqbota - онлайн-бот для практики английского языка, который помогает пользователям улучшать английский через ежедневное общение.\n\nЧто делает бот:\n- Отвечает на сообщения пользователя на английском\n- Исправляет ошибки в длинных сообщениях\n- Объясняет ошибки в грамматике и словарном запасе\n- Помогает сохранять и повторять полезные слова\n- Поддерживает голосовую практику и оценку произношения, где это доступно\n- Отслеживает прогресс обучения и ежедневную активность\n\nКак пользоваться:\n- Откройте Telegram-бота и нажмите Start\n- Отправляйте текстовые или голосовые сообщения на английском\n- Читайте исправления и продолжайте разговор\n- Откройте Mini App, чтобы смотреть сохраненные слова, звезды, прогресс, настройки и информацию о сервисе\n- По техническим вопросам обратитесь в поддержку через раздел «Контакты»'],
+      ['Стоимость', 'Месячный тариф:\n- Цена: 6 000 KZT в месяц\n- Онлайн-практика разговорного английского\n- Безлимитные сообщения и аудио с Aqbota\n- Объяснения ошибок, переводы и оценка произношения\n- Сохраненный словарь и инструменты прогресса\n\nУслуга предоставляется онлайн после успешной оплаты.'],
+      ['Условия использования', 'Условия оказания услуги:\n- Услуги предоставляются онлайн.\n- После успешной оплаты пользователь получает доступ автоматически или в течение 24 часов.\n- Доступ предоставляется на период, указанный в описании выбранного тарифа.\n- Для получения услуги пользователь должен указать корректные контактные данные: Telegram, email или номер телефона.\n\nПоддержка:\n- Email: schoolskyling@gmail.com\n- Телефон: +7 776 661 6110'],
+      ['Политика возврата', 'Условия возврата:\n- Пользователь может отказаться от услуги до начала ее оказания.\n- Если услуга еще не была предоставлена, пользователь может запросить возврат.\n- Возврат выполняется тем же способом оплаты, которым была совершена оплата; сроки зависят от банка и платежной системы.\n- Если доступ к цифровой услуге уже предоставлен и пользователь начал пользоваться сервисом, сумма возврата может быть ограничена фактически оказанным объемом услуг.\n\nДля запроса возврата напишите на schoolskyling@gmail.com и укажите:\n- Полное имя\n- Дату оплаты\n- Сумму оплаты\n- Причину возврата\n- Контактный телефон или email'],
+      ['Реквизиты компании', 'Данные бизнеса:\n- Индивидуальный предприниматель Муратов\n- ИИН: 060611551367\n- Адрес: Казахстан, Караганда, Байкена Ашимова 21\n- Банк: АО Kaspi Bank\n- КБе: 19\n- БИК: CASPKZKA\n- Номер счета: KZ59722S000051751772\n- Телефон: +7 702 260 11 77\n- Email: ajbatmuratov2@gmail.com'],
+      ['Публичная оферта', 'Настоящая публичная оферта определяет условия использования онлайн-сервиса изучения английского языка Aqbota.\n\nОплачивая тариф или пользуясь сервисом, пользователь принимает эти условия.\n\nПоставщик предоставляет пользователю доступ к:\n- Онлайн-образовательным инструментам\n- Практике английского языка\n- Автоматическим исправлениям\n- Словарным функциям\n- Связанным учебным материалам\n\nПользователь соглашается предоставлять достоверную контактную информацию и использовать сервис только для личного обучения. Актуальные условия доступа определяются выбранным и оплаченным тарифом.'],
+      ['Политика конфиденциальности', 'Мы собираем и обрабатываем только информацию, необходимую для предоставления онлайн-сервиса обучения:\n- Данные Telegram-аккаунта\n- Контактные данные, предоставленные пользователем\n- Учебные сообщения\n- Сохраненные слова\n- Данные прогресса\n- Информацию, связанную с оплатой\n- Технические данные, необходимые для работы сервиса\n\nЭта информация используется для предоставления доступа, поддержки учебных функций, обработки платежей, улучшения качества сервиса и связи с пользователем по вопросам сервиса.\n\nМы не продаем персональные данные третьим лицам. Пользователь может написать на schoolskyling@gmail.com, чтобы запросить информацию о своих данных или попросить удалить их, где это применимо.']
+    ]
+  }
+} as const;
+
+type UiCopy = (typeof ui)[InterfaceLanguage];
+
+function copyFor(language: string | null | undefined): UiCopy {
+  return language === 'ru' ? ui.ru : ui.en;
+}
+
+function interfaceLanguage(language: string | null | undefined): InterfaceLanguage {
+  return language === 'ru' ? 'ru' : 'en';
+}
 
 export default function Home() {
   const [launchState, setLaunchState] = useState<'checking' | 'telegram' | 'browser'>('checking');
@@ -156,7 +307,7 @@ export default function Home() {
       <main className="appStage">
         <section className="phoneFrame">
           <div className="screen">
-            <StatePanel text="Opening..." />
+            <StatePanel text={ui.en.opening} />
           </div>
         </section>
       </main>
@@ -199,6 +350,7 @@ function MainApp() {
   const [mode, setMode] = useState<Mode>(null);
   const [messageId, setMessageId] = useState<number | null>(null);
   const profile = useAsync(api.getProfile, []);
+  const copy = copyFor(profile.data?.interface_language);
 
   useEffect(() => {
     window.Telegram?.WebApp?.ready?.();
@@ -217,38 +369,38 @@ function MainApp() {
 
   let content: React.ReactNode;
   if (profile.loading) {
-    content = <StatePanel text="Loading..." />;
+    content = <StatePanel text={copy.loading} />;
   } else if (profile.error || !profile.data) {
-    content = <StatePanel text="Open the bot with /start first, then reopen this Mini App." detail={profile.error ?? undefined} />;
+    content = <StatePanel text={copy.openBotFirst} detail={profile.error ?? undefined} />;
   } else if (mode === 'text') {
-    content = <TextScreen messageId={messageId} profile={profile.data} onLanguage={() => { setMode(null); setActiveTab('language'); }} />;
+    content = <TextScreen messageId={messageId} profile={profile.data} copy={copy} onProfile={updateProfile} onLanguage={() => { setMode(null); setActiveTab('language'); }} />;
   } else if (mode === 'explain') {
-    content = <ExplainScreen messageId={messageId} profile={profile.data} />;
+    content = <ExplainScreen messageId={messageId} profile={profile.data} copy={copy} />;
   } else if (mode === 'score') {
-    content = <ScoreScreen messageId={messageId} />;
+    content = <ScoreScreen messageId={messageId} copy={copy} />;
   } else if (activeTab === 'saved') {
-    content = <SavedScreen />;
+    content = <SavedScreen copy={copy} />;
   } else if (activeTab === 'language') {
-    content = <LanguageScreen profile={profile.data} onProfile={updateProfile} />;
+    content = <LanguageScreen profile={profile.data} copy={copy} onProfile={updateProfile} />;
   } else if (activeTab === 'stars') {
-    content = <StarsScreen profile={profile.data} />;
+    content = <StarsScreen profile={profile.data} copy={copy} />;
   } else if (activeTab === 'settings') {
-    content = <SettingsScreen profile={profile.data} />;
+    content = <SettingsScreen profile={profile.data} copy={copy} onProfile={updateProfile} />;
   } else {
-    content = <ProfileScreen profile={profile.data} />;
+    content = <ProfileScreen profile={profile.data} copy={copy} />;
   }
 
   return (
     <main className="appStage">
       <section className="phoneFrame">
         <div className="screen">{content}</div>
-        {mode === null ? <BottomNav active={activeTab} onChange={setActiveTab} /> : null}
+        {mode === null ? <BottomNav active={activeTab} copy={copy} onChange={setActiveTab} /> : null}
       </section>
     </main>
   );
 }
 
-function ProfileScreen({ profile }: { profile: UserProfile }) {
+function ProfileScreen({ profile, copy }: { profile: UserProfile; copy: UiCopy }) {
   const today = useMemo(() => new Date(), []);
   const profilePhotoUrl = useMemo(() => telegramUserPhotoUrl(), []);
   const [visibleMonth, setVisibleMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
@@ -276,22 +428,22 @@ function ProfileScreen({ profile }: { profile: UserProfile }) {
   return (
     <div className="page profilePage">
       <div className="profileHero">
-        <Avatar large src={profilePhotoUrl} alt={`${profile.name || profile.username || 'Learner'} profile photo`} />
-        <h1>{profile.name || profile.username || 'Learner'}</h1>
+        <Avatar large src={profilePhotoUrl} alt={`${profile.name || profile.username || copy.learner} profile photo`} />
+        <h1>{profile.name || profile.username || copy.learner}</h1>
         <p><Star fill="#f2a51a" /> {profile.stars_count}</p>
       </div>
-      <button className="primaryButton" onClick={inviteFriends}>Invite Friends</button>
-      <button className="secondaryButton">Share Profile</button>
+      <button className="primaryButton" onClick={inviteFriends}>{copy.inviteFriends}</button>
+      <button className="secondaryButton">{copy.shareProfile}</button>
       <Panel className="streakPanel">
         <div className="streakTop">
           <Flame />
           <strong>{profile.current_streak}</strong>
         </div>
-        <span>days streak</span>
+        <span>{copy.daysStreak}</span>
         <div className="calendarTitle">
-          <button onClick={() => moveMonth(-1)} aria-label="Previous month"><ChevronLeft /></button>
+          <button onClick={() => moveMonth(-1)} aria-label={copy.previousMonth}><ChevronLeft /></button>
           <b>{title}</b>
-          <button onClick={() => moveMonth(1)} aria-label="Next month"><ChevronRight /></button>
+          <button onClick={() => moveMonth(1)} aria-label={copy.nextMonth}><ChevronRight /></button>
         </div>
         <div className="calendar">
           {weekdays.map((day) => <b key={day}>{day}</b>)}
@@ -312,17 +464,17 @@ function ProfileScreen({ profile }: { profile: UserProfile }) {
         </div>
       </Panel>
       <Panel className="statsGrid">
-        <Stat value={`${profile.word_count}`} label="Words Said" />
-        <Stat value={`${profile.maximum_streak}`} label="Max streak" />
-        <Stat value={`${profile.correct_percent}%`} label="Correct" />
-        <Stat value={`${profile.messages_count}`} label="Messages Sent" />
+        <Stat value={`${profile.word_count}`} label={copy.wordsSaid} />
+        <Stat value={`${profile.maximum_streak}`} label={copy.maxStreak} />
+        <Stat value={`${profile.correct_percent}%`} label={copy.correct} />
+        <Stat value={`${profile.messages_count}`} label={copy.messagesSent} />
       </Panel>
     </div>
   );
 }
 
-function TextScreen({ messageId, profile }: { messageId: number | null; profile: UserProfile; onLanguage: () => void }) {
-  const message = useAsync(() => messageId ? api.getMessage(messageId) : Promise.reject(new Error('Missing message_id')), [messageId]);
+function TextScreen({ messageId, profile, copy, onProfile }: { messageId: number | null; profile: UserProfile; copy: UiCopy; onProfile: (profile: UserProfile) => void; onLanguage: () => void }) {
+  const message = useAsync(() => messageId ? api.getMessage(messageId) : Promise.reject(new Error(copy.missingMessage)), [messageId, copy.missingMessage]);
   const [definition, setDefinition] = useState<WordDefinition | null>(null);
   const [definitionError, setDefinitionError] = useState<string | null>(null);
   const [showTranslation, setShowTranslation] = useState(false);
@@ -338,7 +490,18 @@ function TextScreen({ messageId, profile }: { messageId: number | null; profile:
     try {
       setDefinition(await api.defineWord(word));
     } catch (error) {
-      setDefinitionError(error instanceof Error ? error.message : 'Could not load this word.');
+      setDefinitionError(error instanceof Error ? error.message : copy.couldNotLoadWord);
+    }
+  }
+
+  async function selectTargetLanguage(language: string) {
+    setTargetLanguage(language);
+    setLanguagePickerOpen(false);
+    setShowTranslation(true);
+    try {
+      onProfile(await api.updateLanguage(language));
+    } catch {
+      // Keep the immediate selection even if persistence fails; the next profile load will retry from the server.
     }
   }
 
@@ -347,9 +510,10 @@ function TextScreen({ messageId, profile }: { messageId: number | null; profile:
       <TranslationScreen
         text={text}
         targetLanguage={targetLanguage}
+        copy={copy}
         onBack={() => setShowTranslation(false)}
         onLanguage={() => setLanguagePickerOpen(true)}
-        onTargetLanguage={setTargetLanguage}
+        onTargetLanguage={selectTargetLanguage}
         languagePickerOpen={languagePickerOpen}
         onCloseLanguagePicker={() => setLanguagePickerOpen(false)}
       />
@@ -358,8 +522,8 @@ function TextScreen({ messageId, profile }: { messageId: number | null; profile:
 
   return (
     <div className="page transcriptPage">
-      {message.loading ? <StatePanel text="Loading transcript..." /> : null}
-      {message.error ? <StatePanel text="Could not load transcript." detail={message.error} /> : null}
+      {message.loading ? <StatePanel text={copy.loadingTranscript} /> : null}
+      {message.error ? <StatePanel text={copy.couldNotLoadTranscript} detail={message.error} /> : null}
       {!message.loading && !message.error ? (
         <>
           <ScrollPanel>
@@ -370,22 +534,18 @@ function TextScreen({ messageId, profile }: { messageId: number | null; profile:
                 return <button key={index} className="wordButton" onClick={() => openWord(clean)}>{piece}</button>;
               })}
             </p>
-            <button className="translateButton" onClick={() => setShowTranslation(true)} disabled={!text.trim()}>Show {targetLanguage}</button>
+            <button className="translateButton" onClick={() => setShowTranslation(true)} disabled={!text.trim()}>{copy.showLanguage(targetLanguage)}</button>
           </ScrollPanel>
-          <h2 className="tapHint">Нажмите на любое слово, чтобы увидеть определение</h2>
-          {definitionError ? <StatePanel text="Could not load definition." detail={definitionError} /> : null}
-          {definition ? <DefinitionBottomSheet entry={definition} onChange={setDefinition} onClose={() => setDefinition(null)} /> : null}
+          <h2 className="tapHint">{copy.tapAnyWord}</h2>
+          {definitionError ? <StatePanel text={copy.couldNotLoadDefinition} detail={definitionError} /> : null}
+          {definition ? <DefinitionBottomSheet entry={definition} copy={copy} onChange={setDefinition} onClose={() => setDefinition(null)} /> : null}
           <button className="languageButton" onClick={() => setLanguagePickerOpen(true)}>
             <b>{languageCode(targetLanguage)}</b> {targetLanguage}
           </button>
           {languagePickerOpen ? (
             <TranslationLanguagePicker
               selectedLanguage={targetLanguage}
-              onSelect={(language) => {
-                setTargetLanguage(language);
-                setLanguagePickerOpen(false);
-                setShowTranslation(true);
-              }}
+              onSelect={selectTargetLanguage}
               onClose={() => setLanguagePickerOpen(false)}
             />
           ) : null}
@@ -398,6 +558,7 @@ function TextScreen({ messageId, profile }: { messageId: number | null; profile:
 function TranslationScreen({
   text,
   targetLanguage,
+  copy,
   onBack,
   onLanguage,
   onTargetLanguage,
@@ -406,6 +567,7 @@ function TranslationScreen({
 }: {
   text: string;
   targetLanguage: string;
+  copy: UiCopy;
   onBack: () => void;
   onLanguage: () => void;
   onTargetLanguage: (language: string) => void;
@@ -416,9 +578,9 @@ function TranslationScreen({
 
   return (
     <div className="page translationPage">
-      {translation.loading ? <StatePanel text="Translating..." /> : null}
-      {translation.error ? <StatePanel text="Could not translate this text." detail={translation.error} /> : null}
-      {translation.data ? <TranslationResultView translatedText={translation.data.translated_text} onBack={onBack} /> : null}
+      {translation.loading ? <StatePanel text={copy.translating} /> : null}
+      {translation.error ? <StatePanel text={copy.couldNotTranslate} detail={translation.error} /> : null}
+      {translation.data ? <TranslationResultView translatedText={translation.data.translated_text} copy={copy} onBack={onBack} /> : null}
       <button className="languageButton" onClick={onLanguage}>
         <b>{languageCode(targetLanguage)}</b> {targetLanguage}
       </button>
@@ -436,11 +598,11 @@ function TranslationScreen({
   );
 }
 
-function TranslationResultView({ translatedText, onBack }: { translatedText: string; onBack: () => void }) {
+function TranslationResultView({ translatedText, copy, onBack }: { translatedText: string; copy: UiCopy; onBack: () => void }) {
   return (
     <ScrollPanel>
       <p className="largeText translatedLargeText">{translatedText}</p>
-      <button className="translateButton" onClick={onBack}>Translate</button>
+      <button className="translateButton" onClick={onBack}>{copy.translate}</button>
     </ScrollPanel>
   );
 }
@@ -469,8 +631,8 @@ function TranslationLanguagePicker({
   );
 }
 
-function ExplainScreen({ messageId, profile }: { messageId: number | null; profile: UserProfile }) {
-  const explanation = useAsync(() => messageId ? api.getExplanation(messageId) : Promise.reject(new Error('Missing message_id')), [messageId]);
+function ExplainScreen({ messageId, profile, copy }: { messageId: number | null; profile: UserProfile; copy: UiCopy }) {
+  const explanation = useAsync(() => messageId ? api.getExplanation(messageId) : Promise.reject(new Error(copy.missingMessage)), [messageId, copy.missingMessage]);
   const [question, setQuestion] = useState('');
   const [followUps, setFollowUps] = useState<Array<[string, string]>>([]);
   const [sending, setSending] = useState(false);
@@ -487,25 +649,25 @@ function ExplainScreen({ messageId, profile }: { messageId: number | null; profi
     }
   }
 
-  if (explanation.loading) return <StatePanel text="Loading explanation..." />;
-  if (explanation.error || !explanation.data) return <StatePanel text="Could not load explanation." detail={explanation.error ?? undefined} />;
+  if (explanation.loading) return <StatePanel text={copy.loadingExplanation} />;
+  if (explanation.error || !explanation.data) return <StatePanel text={copy.couldNotLoadExplanation} detail={explanation.error ?? undefined} />;
 
   const data: ExplainResult = explanation.data;
   return (
     <div className="page explainPage">
       <ScrollPanel>
         {data.chatty_text ? <ExplainBubble title={appName} text={data.chatty_text} tone="chatty" /> : null}
-        <ExplainBubble title={profile.name || 'You'} text={data.corrected_text} tone="learner" />
+        <ExplainBubble title={profile.name || copy.learner} text={data.corrected_text} tone="learner" />
         <p className="explainText">{data.explanation}</p>
         {followUps.map(([prompt, answer]) => (
           <div key={prompt}>
-            <ExplainBubble title={profile.name || 'You'} text={prompt} tone="learner" />
+            <ExplainBubble title={profile.name || copy.learner} text={prompt} tone="learner" />
             <ExplainBubble title={appName} text={answer} tone="chatty" />
           </div>
         ))}
         <div className="questionBox">
-          <input value={question} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void sendFollowUp(); }} placeholder="Задайте уточняющий вопрос..." />
-          <button onClick={sendFollowUp} aria-label="Send question"><ArrowUp /></button>
+          <input value={question} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') void sendFollowUp(); }} placeholder={copy.askFollowUp} />
+          <button onClick={sendFollowUp} aria-label={copy.sendQuestion}><ArrowUp /></button>
         </div>
       </ScrollPanel>
       <button className="languageButton"><b>{languageCode(profile.native_language)}</b> {profile.native_language}</button>
@@ -522,21 +684,21 @@ function ExplainBubble({ title, text, tone }: { title: string; text: string; ton
   );
 }
 
-function SavedScreen() {
+function SavedScreen({ copy }: { copy: UiCopy }) {
   const words = useAsync(api.getSavedWords, []);
   const [selected, setSelected] = useState<SavedWord | null>(null);
 
-  if (words.loading) return <StatePanel text="Loading saved words..." />;
-  if (words.error) return <StatePanel text="Could not load saved words." detail={words.error} />;
+  if (words.loading) return <StatePanel text={copy.loadingSavedWords} />;
+  if (words.error) return <StatePanel text={copy.couldNotLoadSavedWords} detail={words.error} />;
 
   const rows = words.data ?? [];
   if (rows.length === 0) {
     return (
       <div className="page savedPage">
         <ScrollPanel>
-          <p className="emptySaved">You don&apos;t have any words saved yet! To save a word:<br />1️⃣&nbsp; Open transcription of an Aqbota response<br />2️⃣&nbsp; Click on a word you want to save<br />3️⃣&nbsp; Click bookmark icon</p>
+          <p className="emptySaved">{copy.emptySaved}</p>
         </ScrollPanel>
-        {selected ? <SavedDefinitionSheet selected={selected} setSelected={setSelected} words={words} /> : null}
+        {selected ? <SavedDefinitionSheet selected={selected} copy={copy} setSelected={setSelected} words={words} /> : null}
       </div>
     );
   }
@@ -552,24 +714,27 @@ function SavedScreen() {
           ))}
         </div>
       </ScrollPanel>
-      <h2 className="tapHint savedHint">Tap any word to see the definition</h2>
-      {selected ? <SavedDefinitionSheet selected={selected} setSelected={setSelected} words={words} /> : null}
+      <h2 className="tapHint savedHint">{copy.tapAnyWord}</h2>
+      {selected ? <SavedDefinitionSheet selected={selected} copy={copy} setSelected={setSelected} words={words} /> : null}
     </div>
   );
 }
 
 function SavedDefinitionSheet({
   selected,
+  copy,
   setSelected,
   words
 }: {
   selected: SavedWord;
+  copy: UiCopy;
   setSelected: (word: SavedWord | null) => void;
   words: ReturnType<typeof useAsync<SavedWord[]>>;
 }) {
   return (
     <DefinitionBottomSheet
       entry={selected}
+      copy={copy}
       onClose={() => setSelected(null)}
       onChange={(entry) => {
         if (!entry.saved) {
@@ -587,17 +752,19 @@ function SavedDefinitionSheet({
 
 function DefinitionBottomSheet({
   entry,
+  copy,
   onChange,
   onClose
 }: {
   entry: WordDefinition;
+  copy: UiCopy;
   onChange: (entry: WordDefinition) => void;
   onClose: () => void;
 }) {
   return (
     <div className="sheetBackdrop" onClick={onClose}>
       <div className="sheetSurface" onClick={(event) => event.stopPropagation()}>
-        <DefinitionSheet entry={entry} onChange={onChange} onClose={onClose} />
+        <DefinitionSheet entry={entry} copy={copy} onChange={onChange} onClose={onClose} />
       </div>
     </div>
   );
@@ -605,10 +772,12 @@ function DefinitionBottomSheet({
 
 function DefinitionSheet({
   entry,
+  copy,
   onChange,
   onClose
 }: {
   entry: WordDefinition;
+  copy: UiCopy;
   onChange: (entry: WordDefinition) => void;
   onClose: () => void;
 }) {
@@ -636,10 +805,10 @@ function DefinitionSheet({
         <h2>{entry.word}</h2>
         {entry.pronunciation ? <span className="pronounce">{entry.pronunciation} <Volume2 size={15} /></span> : null}
         {entry.translation ? <span>{entry.translation}</span> : null}
-        <button className={entry.saved ? 'bookmarkButton active' : 'bookmarkButton'} onClick={toggleSave} aria-label={entry.saved ? 'Remove saved word' : 'Save word'}>
+        <button className={entry.saved ? 'bookmarkButton active' : 'bookmarkButton'} onClick={toggleSave} aria-label={entry.saved ? copy.removeSavedWord : copy.saveWord}>
           <Bookmark fill={entry.saved ? 'black' : 'none'} />
         </button>
-        <button className="roundClose" onClick={onClose} aria-label="Close definition"><X /></button>
+        <button className="roundClose" onClick={onClose} aria-label={copy.closeDefinition}><X /></button>
       </div>
       {entry.examples[0] ? <p className="example">{entry.examples[0]}</p> : null}
       {entry.part_of_speech ? <h3>{entry.part_of_speech}</h3> : null}
@@ -649,25 +818,25 @@ function DefinitionSheet({
   );
 }
 
-function ScoreScreen({ messageId }: { messageId: number | null }) {
-  const score = useAsync(() => messageId ? api.getScore(messageId) : Promise.reject(new Error('Missing message_id')), [messageId]);
+function ScoreScreen({ messageId, copy }: { messageId: number | null; copy: UiCopy }) {
+  const score = useAsync(() => messageId ? api.getScore(messageId) : Promise.reject(new Error(copy.missingMessage)), [messageId, copy.missingMessage]);
 
-  if (score.loading) return <StatePanel text="Loading pronunciation analysis..." />;
-  if (score.error || !score.data) return <StatePanel text="Could not load pronunciation score." detail={score.error ?? undefined} />;
+  if (score.loading) return <StatePanel text={copy.loadingScore} />;
+  if (score.error || !score.data) return <StatePanel text={copy.couldNotLoadScore} detail={score.error ?? undefined} />;
 
   const data: PronunciationScore = score.data;
   const metrics = [
-    ['Accuracy', data.accuracy_score],
-    ['Fluency', data.fluency_score],
-    ['Prosody', data.prosody_score],
-    ['Grammar', data.grammar_score],
-    ['Vocabulary', data.vocabulary_score],
-    ['Topic', data.topic_score]
+    [copy.metrics[0], data.accuracy_score],
+    [copy.metrics[1], data.fluency_score],
+    [copy.metrics[2], data.prosody_score],
+    [copy.metrics[3], data.grammar_score],
+    [copy.metrics[4], data.vocabulary_score],
+    [copy.metrics[5], data.topic_score]
   ] as const;
 
   return (
     <div className="page scorePage">
-      <h1>Pronunciation Analysis</h1>
+      <h1>{copy.pronunciationAnalysis}</h1>
       <Panel className="scoreGrid">
         {metrics.map(([label, amount]) => (
           <div className="metric" key={label}>
@@ -676,14 +845,14 @@ function ScoreScreen({ messageId }: { messageId: number | null }) {
           </div>
         ))}
       </Panel>
-      <h1>Transcript</h1>
+      <h1>{copy.transcript}</h1>
       <Panel className="scoreTranscript">{data.transcript}</Panel>
       {data.feedback ? <Panel className="feedbackPanel">{data.feedback}</Panel> : null}
     </div>
   );
 }
 
-function LanguageScreen({ profile, onProfile }: { profile: UserProfile; onProfile: (profile: UserProfile) => void }) {
+function LanguageScreen({ profile, copy, onProfile }: { profile: UserProfile; copy: UiCopy; onProfile: (profile: UserProfile) => void }) {
   const [saving, setSaving] = useState<string | null>(null);
 
   async function selectLanguage(language: string) {
@@ -703,7 +872,7 @@ function LanguageScreen({ profile, onProfile }: { profile: UserProfile; onProfil
             <Avatar />
             <span><b>{code}</b> {name}</span>
             <ChevronDown />
-            {saving === name ? <i>Saving...</i> : null}
+            {saving === name ? <i>{copy.saving}</i> : null}
           </button>
         ))}
       </div>
@@ -711,7 +880,7 @@ function LanguageScreen({ profile, onProfile }: { profile: UserProfile; onProfil
   );
 }
 
-function StarsScreen({ profile }: { profile: UserProfile }) {
+function StarsScreen({ profile, copy }: { profile: UserProfile; copy: UiCopy }) {
   const [stars, setStars] = useState(profile.stars_count);
   const [tickets, setTickets] = useState(profile.tickets_count);
   const [dailyStars, setDailyStars] = useState(profile.daily_message_stars_count);
@@ -742,44 +911,45 @@ function StarsScreen({ profile }: { profile: UserProfile }) {
           <Star fill="#ffb21c" />
           <strong>{stars}</strong>
         </div>
-        <span>your stars</span>
+        <span>{copy.yourStars}</span>
       </div>
 
       <button className="exchangeButton" disabled={stars < 100 || exchanging} onClick={exchangeStars}>
-        Exchange <Star fill="#ffb21c" />100 for <Ticket fill="#ff7bab" />1 ticket
+        {copy.exchangeStars} <Star fill="#ffb21c" />100 {copy.exchangeConnector} <Ticket fill="#ff7bab" />{copy.oneTicket}
       </button>
       {exchangeError ? <p className="starsError">{exchangeError}</p> : null}
 
       <div className="lotteryCopy">
-        <p>Win an iPhone 17 this New Year 2026! <Gift fill="#ff3f79" /></p>
-        <p>Get lottery tickets to enter.</p>
-        <p>Details: <a href="https://t.me/ChattyEnglishBotChannel">@ChattyEnglishBotChannel</a></p>
+        <p>{copy.lotteryTitle} <Gift fill="#ff3f79" /></p>
+        <p>{copy.lotterySubtitle}</p>
+        <p>{copy.details} <a href="https://t.me/ChattyEnglishBotChannel">@ChattyEnglishBotChannel</a></p>
       </div>
 
       <div className="ticketsBox">
         {tickets > 0 ? (
-          <span>You have {tickets} lottery {tickets === 1 ? 'ticket' : 'tickets'}.</span>
+          <span>{copy.tickets(tickets)}</span>
         ) : (
-          <span>You do not have tickets yet, exchange stars to participate</span>
+          <span>{copy.noTickets}</span>
         )}
       </div>
 
       <Panel className="dailyStarsPanel">
-        <h2>Daily stars</h2>
+        <h2>{copy.dailyStars}</h2>
         <div className="dailyStarRow">
           {dailySlots.map((earned, index) => (
             <Star key={index} fill={earned ? '#ffb21c' : '#858585'} />
           ))}
         </div>
-        <p>Send 10 correct long messages to Chatty every day to maximize this reward!</p>
+        <p>{copy.dailyStarsHint}</p>
       </Panel>
     </div>
   );
 }
 
-function SettingsScreen({ profile }: { profile: UserProfile }) {
+function SettingsScreen({ profile, copy, onProfile }: { profile: UserProfile; copy: UiCopy; onProfile: (profile: UserProfile) => void }) {
   const [showCompanyInfo, setShowCompanyInfo] = useState(false);
   const [showPlans, setShowPlans] = useState(false);
+  const [showInterfaceLanguage, setShowInterfaceLanguage] = useState(false);
 
   async function sendCommand(command: string) {
     const queryId = window.Telegram?.WebApp?.initDataUnsafe?.query_id;
@@ -801,83 +971,116 @@ function SettingsScreen({ profile }: { profile: UserProfile }) {
     window.open(target, '_blank', 'noopener,noreferrer');
   }
 
+  async function selectInterfaceLanguage(language: InterfaceLanguage) {
+    onProfile(await api.updateInterfaceLanguage(language));
+    setShowInterfaceLanguage(false);
+  }
+
   if (showPlans) {
-    return <PlansScreen onBack={() => setShowPlans(false)} onContinue={() => sendCommand('/unlimited')} />;
+    return <PlansScreen copy={copy} onBack={() => setShowPlans(false)} onContinue={() => sendCommand('/unlimited')} />;
   }
 
   if (showCompanyInfo) {
-    return <CompanyInfoScreen onBack={() => setShowCompanyInfo(false)} />;
+    return <CompanyInfoScreen copy={copy} onBack={() => setShowCompanyInfo(false)} />;
+  }
+
+  if (showInterfaceLanguage) {
+    return (
+      <InterfaceLanguageScreen
+        copy={copy}
+        selected={interfaceLanguage(profile.interface_language)}
+        onBack={() => setShowInterfaceLanguage(false)}
+        onSelect={selectInterfaceLanguage}
+      />
+    );
   }
 
   return (
     <div className="page settingsPage">
-      <SettingsRow icon={Heart} label="Get unlimited access" premium onClick={() => setShowPlans(true)} />
+      <SettingsRow icon={Heart} label={copy.getUnlimited} premium onClick={() => setShowPlans(true)} />
       <SettingsGroup>
-        <SettingsRow icon={UserRound} label="Invite friends" onClick={() => sendCommand('/invite')} />
-        <SettingsRow icon={Gift} label="Gift subscription" onClick={() => sendCommand('/unlimited')} />
+        <SettingsRow icon={UserRound} label={copy.inviteFriends} onClick={() => sendCommand('/invite')} />
+        <SettingsRow icon={Gift} label={copy.giftSubscription} onClick={() => sendCommand('/unlimited')} />
       </SettingsGroup>
       <SettingsGroup>
-        <SettingsRow icon={Mic} label={`Change Aqbota voice · ${profile.selected_voice}`} onClick={() => sendCommand('/voice')} />
-        <SettingsRow icon={BarChart3} label={`Change your English level · ${profile.english_level}`} onClick={() => sendCommand('/level')} />
-        <SettingsRow icon={Flame} label={`Change Aqbota voice speed · ${profile.voice_speed}x`} onClick={() => sendCommand('/voice_speed')} />
-        <SettingsRow icon={ListChecks} label="Choose topics" onClick={() => sendCommand('/topics')} />
+        <SettingsRow icon={Mic} label={copy.changeVoice(profile.selected_voice)} onClick={() => sendCommand('/voice')} />
+        <SettingsRow icon={BarChart3} label={copy.changeLevel(profile.english_level)} onClick={() => sendCommand('/level')} />
+        <SettingsRow icon={Flame} label={copy.changeSpeed(profile.voice_speed)} onClick={() => sendCommand('/voice_speed')} />
+        <SettingsRow icon={ListChecks} label={copy.chooseTopics} onClick={() => sendCommand('/topics')} />
       </SettingsGroup>
       <SettingsGroup>
-        <SettingsRow icon={HelpCircle} label="How to use Aqbota" onClick={() => sendCommand('/help')} />
-        <SettingsRow icon={FileText} label="Company information" onClick={() => setShowCompanyInfo(true)} />
+        <SettingsRow icon={HelpCircle} label={copy.howToUse} onClick={() => sendCommand('/help')} />
+        <SettingsRow icon={Globe2} label={copy.interfaceLanguage(interfaceLanguage(profile.interface_language))} onClick={() => setShowInterfaceLanguage(true)} />
+        <SettingsRow icon={FileText} label={copy.companyInformation} onClick={() => setShowCompanyInfo(true)} />
       </SettingsGroup>
     </div>
   );
 }
 
-function PlansScreen({ onBack, onContinue }: { onBack: () => void; onContinue: () => void }) {
-  const features = [
-    'Unlimited messages and audio with Aqbota',
-    'Explanations of mistakes, translations, and pronunciation evaluation',
-    'More practice tools for faster English progress',
-    'Cancel anytime'
-  ];
-
+function PlansScreen({ copy, onBack, onContinue }: { copy: UiCopy; onBack: () => void; onContinue: () => void }) {
   return (
     <div className="page plansPage">
       <button className="backButton" onClick={onBack}>
-        <ChevronLeft /> Settings
+        <ChevronLeft /> {copy.settings}
       </button>
       <div className="plansHero">
         <Heart fill="#ff2b62" />
         <h1>Aqbota Unlimited</h1>
       </div>
       <div className="planFeatures">
-        {features.map((feature) => (
+        {copy.unlimitedFeatures.map((feature) => (
           <p key={feature}><Check /> {feature}</p>
         ))}
       </div>
       <button className="planOption selected">
         <span>
-          <strong>Unlimited Month</strong>
-          <small>Monthly subscription</small>
+          <strong>{copy.unlimitedMonth}</strong>
+          <small>{copy.monthlySubscription}</small>
         </span>
         <b>
           6000 ₸
-          <small>per month</small>
+          <small>{copy.perMonth}</small>
         </b>
       </button>
-      <button className="planContinue" onClick={onContinue}>Continue</button>
+      <button className="planContinue" onClick={onContinue}>{copy.continue}</button>
     </div>
   );
 }
 
-function CompanyInfoScreen({ onBack }: { onBack: () => void }) {
-  const [openSection, setOpenSection] = useState<string | null>(companyInfoSections[0][0]);
+function InterfaceLanguageScreen({ copy, selected, onBack, onSelect }: { copy: UiCopy; selected: InterfaceLanguage; onBack: () => void; onSelect: (language: InterfaceLanguage) => void }) {
+  return (
+    <div className="page languagePage">
+      <button className="backButton" onClick={onBack}>
+        <ChevronLeft /> {copy.settings}
+      </button>
+      <h1 className="settingsSubTitle">{copy.chooseInterfaceLanguage}</h1>
+      <div className="languageRows">
+        {([
+          ['en', 'GB', copy.english],
+          ['ru', 'RU', copy.russian]
+        ] as const).map(([id, code, label]) => (
+          <button className={id === selected ? 'selected' : ''} onClick={() => onSelect(id)} key={id}>
+            <Avatar />
+            <span><b>{code}</b> {label}</span>
+            <ChevronDown />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CompanyInfoScreen({ copy, onBack }: { copy: UiCopy; onBack: () => void }) {
+  const [openSection, setOpenSection] = useState<string | null>(copy.companySections[0][0]);
 
   return (
     <div className="page companyInfoPage">
       <button className="backButton" onClick={onBack}>
-        <ChevronLeft /> Settings
+        <ChevronLeft /> {copy.settings}
       </button>
-      <h1>Company information</h1>
+      <h1>{copy.companyInformation}</h1>
       <div className="companyInfoList">
-        {companyInfoSections.map(([title, body]) => (
+        {copy.companySections.map(([title, body]) => (
           <button
             className={openSection === title ? 'companyInfoPanel open' : 'companyInfoPanel'}
             key={title}
@@ -909,13 +1112,13 @@ function SettingsGroup({ children }: { children: React.ReactNode }) {
   return <div className="settingsGroup">{children}</div>;
 }
 
-function BottomNav({ active, onChange }: { active: Tab; onChange: (tab: Tab) => void }) {
+function BottomNav({ active, copy, onChange }: { active: Tab; copy: UiCopy; onChange: (tab: Tab) => void }) {
   const items = [
-    ['profile', UserRound, 'Profile'],
-    ['saved', Bookmark, 'Saved'],
-    ['stars', Star, 'Stars'],
-    ['language', Globe2, 'Language'],
-    ['settings', Settings, 'Settings']
+    ['profile', UserRound, copy.nav[0]],
+    ['saved', Bookmark, copy.nav[1]],
+    ['stars', Star, copy.nav[2]],
+    ['language', Globe2, copy.nav[3]],
+    ['settings', Settings, copy.nav[4]]
   ] as const;
 
   return (

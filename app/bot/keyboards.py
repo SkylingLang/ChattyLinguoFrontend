@@ -30,6 +30,29 @@ TOPIC_OPTIONS = [
     "Environmental Issues",
 ]
 
+BUTTON_TEXT = {
+    "en": {
+        "explain": "Explain",
+        "score": "Score",
+        "text": "Text",
+        "help": "Help",
+        "open_analysis": "Open analysis",
+        "checked": "✅",
+    },
+    "ru": {
+        "explain": "Объяснить",
+        "score": "Оценка",
+        "text": "Текст",
+        "help": "Помощь",
+        "open_analysis": "Открыть анализ",
+        "checked": "✅",
+    },
+}
+
+
+def button_text(interface_language: str | None, key: str) -> str:
+    return BUTTON_TEXT.get(interface_language or "en", BUTTON_TEXT["en"])[key]
+
 
 def _mini_app_url(**params: object) -> str:
     url = str(settings.mini_app_url)
@@ -49,11 +72,13 @@ def response_actions(
     telegram_user_id: int | None = None,
     has_correction: bool = False,
     allow_score: bool = False,
+    interface_language: str | None = None,
 ) -> InlineKeyboardMarkup:
     suffix = f":{message_id}" if message_id else ""
+    explain_label = button_text(interface_language, "explain")
     if has_correction:
         explain_button = InlineKeyboardButton(
-            text="Explain",
+            text=explain_label,
             web_app=WebAppInfo(
                 url=_mini_app_url(
                     mode="explain",
@@ -63,12 +88,12 @@ def response_actions(
             ),
         )
     else:
-        explain_button = InlineKeyboardButton(text="Explain", callback_data=f"explain{suffix}")
+        explain_button = InlineKeyboardButton(text=explain_label, callback_data=f"explain{suffix}")
     buttons = [explain_button]
     if allow_score:
         buttons.append(
             InlineKeyboardButton(
-                text="Score",
+                text=button_text(interface_language, "score"),
                 web_app=WebAppInfo(
                     url=_mini_app_url(
                         mode="score",
@@ -86,14 +111,16 @@ def voice_response_actions(
     telegram_user_id: int | None = None,
     *,
     help_checked: bool = False,
+    interface_language: str | None = None,
 ) -> InlineKeyboardMarkup:
     suffix = f":{message_id}" if message_id else ""
-    help_label = "Help ✅" if help_checked else "Help"
+    help_text = button_text(interface_language, "help")
+    help_label = f"{help_text} {button_text(interface_language, 'checked')}" if help_checked else help_text
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="Text",
+                    text=button_text(interface_language, "text"),
                     web_app=WebAppInfo(
                         url=_mini_app_url(
                             mode="text",
@@ -108,12 +135,14 @@ def voice_response_actions(
     )
 
 
-def analysis_button(message_id: int, telegram_user_id: int) -> InlineKeyboardMarkup:
+def analysis_button(
+    message_id: int, telegram_user_id: int, interface_language: str | None = None
+) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="Open analysis",
+                    text=button_text(interface_language, "open_analysis"),
                     web_app=WebAppInfo(
                         url=_mini_app_url(
                             mode="score",
