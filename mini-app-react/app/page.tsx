@@ -697,14 +697,22 @@ function SavedScreen({ profile, copy, onProfile }: { profile: UserProfile; copy:
   async function openSavedWord(word: SavedWord) {
     setOpeningWord(word.word);
     try {
-      if (!word.definition) {
-        setSelected(word);
-        return;
+      async function translateOrFallback(text: string, fallback: string | null | undefined) {
+        try {
+          const translated = await api.translateText(text, profile.native_language);
+          return translated.translated_text;
+        } catch {
+          return fallback ?? text;
+        }
       }
-      const translated = await api.translateText(word.definition, profile.native_language);
-      setSelected({ ...word, definition: translated.translated_text });
-    } catch {
-      setSelected(word);
+
+      const [translation, definition] = await Promise.all([
+        translateOrFallback(word.word, word.translation),
+        word.definition
+          ? translateOrFallback(word.definition, word.definition)
+          : Promise.resolve(word.definition)
+      ]);
+      setSelected({ ...word, translation, definition });
     } finally {
       setOpeningWord(null);
     }

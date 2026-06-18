@@ -971,22 +971,27 @@ class _SavedScreenState extends State<SavedScreen> {
   }
 
   Future<void> _showSavedWord(SavedWord word) async {
-    var translatedDefinition = word.definition;
-    if (translatedDefinition != null && translatedDefinition.isNotEmpty) {
+    Future<String> translateOrFallback(String text, String fallback) async {
       try {
-        translatedDefinition = await widget.api.translateText(
-          translatedDefinition,
+        return await widget.api.translateText(
+          text,
           widget.profile.nativeLanguage,
         );
       } catch (_) {
-        // Fall back to the saved definition when translation is unavailable.
+        return fallback;
       }
     }
+
+    final translated = await Future.wait([
+      translateOrFallback(word.word, word.translation ?? word.word),
+      if (word.definition != null && word.definition!.isNotEmpty)
+        translateOrFallback(word.definition!, word.definition!),
+    ]);
     if (!mounted) return;
     final entry = WordDefinition(
       word: word.word,
-      translation: word.translation,
-      definition: translatedDefinition,
+      translation: translated.first,
+      definition: translated.length > 1 ? translated[1] : word.definition,
       examples: word.examples,
       partOfSpeech: word.partOfSpeech,
       pronunciation: word.pronunciation,
