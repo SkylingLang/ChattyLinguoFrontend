@@ -93,6 +93,20 @@ class ApiClient {
         jsonDecode(response.body) as Map<String, dynamic>);
   }
 
+  Future<String> translateText(String text, String targetLanguage) async {
+    final response = await http.post(
+      _uri('/api/learning/translate'),
+      headers: {'Content-Type': 'application/json', ..._headers},
+      body: jsonEncode({
+        'text': text,
+        'target_language': targetLanguage,
+      }),
+    );
+    _throwIfBad(response);
+    final body = jsonDecode(response.body) as Map<String, dynamic>;
+    return body['translated_text'] as String? ?? text;
+  }
+
   Future<PronunciationScore> getScore(int messageId) async {
     final response = await http.get(
         _uri('/api/learning/messages/$messageId/score'),

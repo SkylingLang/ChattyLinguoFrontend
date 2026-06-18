@@ -970,11 +970,23 @@ class _SavedScreenState extends State<SavedScreen> {
     words = widget.api.getSavedWords();
   }
 
-  void _showSavedWord(SavedWord word) {
+  Future<void> _showSavedWord(SavedWord word) async {
+    var translatedDefinition = word.definition;
+    if (translatedDefinition != null && translatedDefinition.isNotEmpty) {
+      try {
+        translatedDefinition = await widget.api.translateText(
+          translatedDefinition,
+          widget.profile.nativeLanguage,
+        );
+      } catch (_) {
+        // Fall back to the saved definition when translation is unavailable.
+      }
+    }
+    if (!mounted) return;
     final entry = WordDefinition(
       word: word.word,
       translation: word.translation,
-      definition: word.definition,
+      definition: translatedDefinition,
       examples: word.examples,
       partOfSpeech: word.partOfSpeech,
       pronunciation: word.pronunciation,

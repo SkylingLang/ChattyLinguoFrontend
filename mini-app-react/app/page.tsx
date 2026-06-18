@@ -686,11 +686,28 @@ function ExplainBubble({ title, text, tone }: { title: string; text: string; ton
 function SavedScreen({ profile, copy, onProfile }: { profile: UserProfile; copy: UiCopy; onProfile: (profile: UserProfile) => void }) {
   const words = useAsync(api.getSavedWords, []);
   const [selected, setSelected] = useState<SavedWord | null>(null);
+  const [openingWord, setOpeningWord] = useState<string | null>(null);
   const [languagePickerOpen, setLanguagePickerOpen] = useState(false);
 
   async function selectTargetLanguage(language: string) {
     setLanguagePickerOpen(false);
     onProfile(await api.updateLanguage(language));
+  }
+
+  async function openSavedWord(word: SavedWord) {
+    setOpeningWord(word.word);
+    try {
+      if (!word.definition) {
+        setSelected(word);
+        return;
+      }
+      const translated = await api.translateText(word.definition, profile.native_language);
+      setSelected({ ...word, definition: translated.translated_text });
+    } catch {
+      setSelected(word);
+    } finally {
+      setOpeningWord(null);
+    }
   }
 
   const languageControl = (
@@ -729,8 +746,8 @@ function SavedScreen({ profile, copy, onProfile }: { profile: UserProfile; copy:
       <ScrollPanel compact>
         <div className="savedWordList">
           {rows.map((word) => (
-            <button key={word.id} onClick={() => setSelected({ ...word, saved: true })}>
-              {word.word}
+            <button key={word.id} disabled={openingWord === word.word} onClick={() => void openSavedWord({ ...word, saved: true })}>
+              {openingWord === word.word ? `${word.word}…` : word.word}
             </button>
           ))}
         </div>
