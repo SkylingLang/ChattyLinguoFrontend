@@ -132,7 +132,12 @@ class _MiniAppHomeState extends State<MiniAppHome> {
                   index: tabIndex,
                   children: [
                     ProfileScreen(profile: currentProfile),
-                    SavedScreen(api: api),
+                    SavedScreen(
+                      api: api,
+                      profile: currentProfile,
+                      onLanguageChanged: (value) =>
+                          setState(() => profile = value),
+                    ),
                     StarsScreen(api: api, profile: currentProfile),
                     LanguageScreen(
                       profile: currentProfile,
@@ -941,9 +946,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
 }
 
 class SavedScreen extends StatefulWidget {
-  const SavedScreen({required this.api, super.key});
+  const SavedScreen({
+    required this.api,
+    required this.profile,
+    required this.onLanguageChanged,
+    super.key,
+  });
 
   final ApiClient api;
+  final UserProfile profile;
+  final ValueChanged<UserProfile> onLanguageChanged;
 
   @override
   State<SavedScreen> createState() => _SavedScreenState();
@@ -987,51 +999,90 @@ class _SavedScreenState extends State<SavedScreen> {
     );
   }
 
+  Future<void> _pickLanguage(BuildContext context) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.78,
+        child: LanguageScreen(
+          profile: widget.profile,
+          api: widget.api,
+          onChanged: (value) {
+            widget.onLanguageChanged(value);
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<SavedWord>>(
-      future: words,
-      builder: (context, snapshot) {
-        final rows = snapshot.data ?? const <SavedWord>[];
-        if (rows.isEmpty) {
-          return const SingleChildScrollView(
-            padding: EdgeInsets.all(18),
-            child: Panel(
-              child: Text(
-                "You don't have any words saved yet! To save a word:\n1️⃣  Open transcription of a Chatty response\n2️⃣  Click on a word you want to save\n3️⃣  Click bookmark icon",
-                style: TextStyle(fontSize: 24, height: 1.35),
-              ),
-            ),
-          );
-        }
-        return ListView.separated(
-          padding: const EdgeInsets.all(18),
-          itemCount: rows.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final word = rows[index];
-            return GestureDetector(
-              onTap: () => _showSavedWord(word),
-              child: Panel(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(word.word,
-                        style: const TextStyle(
-                            fontSize: 26, fontWeight: FontWeight.w800)),
-                    if (word.translation != null)
-                      Text(word.translation!,
-                          style: const TextStyle(fontSize: 18)),
-                    if (word.definition != null)
-                      Text(word.definition!,
-                          style: const TextStyle(color: Color(0xff68717a))),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: FutureBuilder<List<SavedWord>>(
+            future: words,
+            builder: (context, snapshot) {
+              final rows = snapshot.data ?? const <SavedWord>[];
+              if (rows.isEmpty) {
+                return const SingleChildScrollView(
+                  padding: EdgeInsets.all(18),
+                  child: Panel(
+                    child: Text(
+                      "You don't have any words saved yet! To save a word:\n1️⃣  Open transcription of a Chatty response\n2️⃣  Click on a word you want to save\n3️⃣  Click bookmark icon",
+                      style: TextStyle(fontSize: 24, height: 1.35),
+                    ),
+                  ),
+                );
+              }
+              return ListView.separated(
+                padding: const EdgeInsets.all(18),
+                itemCount: rows.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final word = rows[index];
+                  return GestureDetector(
+                    onTap: () => _showSavedWord(word),
+                    child: Panel(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(word.word,
+                              style: const TextStyle(
+                                  fontSize: 26, fontWeight: FontWeight.w800)),
+                          if (word.translation != null)
+                            Text(word.translation!,
+                                style: const TextStyle(fontSize: 18)),
+                          if (word.definition != null)
+                            Text(word.definition!,
+                                style:
+                                    const TextStyle(color: Color(0xff68717a))),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
+          child: WideButton(
+            text: widget.profile.nativeLanguage,
+            color: const Color(0xfff3f3f5),
+            textColor: Colors.black,
+            onPressed: () => _pickLanguage(context),
+          ),
+        ),
+      ],
     );
   }
 }

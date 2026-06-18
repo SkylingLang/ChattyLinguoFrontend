@@ -375,7 +375,7 @@ function MainApp() {
   } else if (mode === 'score') {
     content = <ScoreScreen messageId={messageId} copy={copy} />;
   } else if (activeTab === 'saved') {
-    content = <SavedScreen copy={copy} />;
+    content = <SavedScreen profile={profile.data} copy={copy} onProfile={updateProfile} />;
   } else if (activeTab === 'language') {
     content = <LanguageScreen profile={profile.data} copy={copy} onProfile={updateProfile} />;
   } else if (activeTab === 'stars') {
@@ -476,6 +476,10 @@ function TextScreen({ messageId, profile, copy, onProfile }: { messageId: number
   const [targetLanguage, setTargetLanguage] = useState(profile.native_language);
   const [languagePickerOpen, setLanguagePickerOpen] = useState(false);
   const text = displayMessage(message.data);
+
+  useEffect(() => {
+    setTargetLanguage(profile.native_language);
+  }, [profile.native_language]);
 
   async function openWord(rawWord: string) {
     const word = rawWord.replace(/[^A-Za-z'-]/g, '');
@@ -679,9 +683,30 @@ function ExplainBubble({ title, text, tone }: { title: string; text: string; ton
   );
 }
 
-function SavedScreen({ copy }: { copy: UiCopy }) {
+function SavedScreen({ profile, copy, onProfile }: { profile: UserProfile; copy: UiCopy; onProfile: (profile: UserProfile) => void }) {
   const words = useAsync(api.getSavedWords, []);
   const [selected, setSelected] = useState<SavedWord | null>(null);
+  const [languagePickerOpen, setLanguagePickerOpen] = useState(false);
+
+  async function selectTargetLanguage(language: string) {
+    setLanguagePickerOpen(false);
+    onProfile(await api.updateLanguage(language));
+  }
+
+  const languageControl = (
+    <>
+      <button className="languageButton" onClick={() => setLanguagePickerOpen(true)}>
+        <b>{languageCode(profile.native_language)}</b> {profile.native_language}
+      </button>
+      {languagePickerOpen ? (
+        <TranslationLanguagePicker
+          selectedLanguage={profile.native_language}
+          onSelect={selectTargetLanguage}
+          onClose={() => setLanguagePickerOpen(false)}
+        />
+      ) : null}
+    </>
+  );
 
   if (words.loading) return <StatePanel text={copy.loadingSavedWords} />;
   if (words.error) return <StatePanel text={copy.couldNotLoadSavedWords} detail={words.error} />;
@@ -693,6 +718,7 @@ function SavedScreen({ copy }: { copy: UiCopy }) {
         <ScrollPanel>
           <p className="emptySaved">{copy.emptySaved}</p>
         </ScrollPanel>
+        {languageControl}
         {selected ? <SavedDefinitionSheet selected={selected} copy={copy} setSelected={setSelected} words={words} /> : null}
       </div>
     );
@@ -710,6 +736,7 @@ function SavedScreen({ copy }: { copy: UiCopy }) {
         </div>
       </ScrollPanel>
       <h2 className="tapHint savedHint">{copy.tapAnyWord}</h2>
+      {languageControl}
       {selected ? <SavedDefinitionSheet selected={selected} copy={copy} setSelected={setSelected} words={words} /> : null}
     </div>
   );
