@@ -33,7 +33,7 @@ const companyInfoSections = [
     'Company Details',
     'Business details:\n- Individual Entrepreneur Muratov\n- IIN: 060611551367\n- Address: Kazakhstan, Karaganda, Baiken Ashimova 21\n- Bank: JSC Kaspi Bank\n- KBe: 19\n- BIK: CASPKZKA\n- Account number: KZ59722S000051751772\n- Phone: +7 702 260 11 77\n- Email: ajbatmuratov2@gmail.com'
   ),
-  ('Public Offer', publicOfferText),
+  ('Лицензионное соглашение и публичная оферта', publicOfferText),
   ('Privacy Policy', privacyPolicyText),
 ];
 
@@ -1419,7 +1419,10 @@ class CompanyInfoScreen extends StatefulWidget {
 }
 
 class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
-  String? openSection = companyInfoSections.first.$1;
+  final legalSections = companyInfoSections.sublist(
+    companyInfoSections.length - 2,
+  );
+  late String? openSection = legalSections.first.$1;
 
   @override
   Widget build(BuildContext context) {
@@ -1427,10 +1430,10 @@ class _CompanyInfoScreenState extends State<CompanyInfoScreen> {
       appBar: AppBar(title: const Text('Company information')),
       body: ListView.separated(
         padding: const EdgeInsets.all(18),
-        itemCount: companyInfoSections.length,
+        itemCount: legalSections.length,
         separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
-          final section = companyInfoSections[index];
+          final section = legalSections[index];
           final open = openSection == section.$1;
           return Panel(
             child: InkWell(

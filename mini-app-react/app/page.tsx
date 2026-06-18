@@ -166,7 +166,7 @@ const ui = {
       ['Terms of Service', 'Service conditions:\n- Services are provided online.\n- After successful payment, the user receives access automatically or within 24 hours.\n- Access is provided for the period specified in the selected tariff description.\n- To receive the service, the user must provide correct contact details: Telegram, email, or phone number.\n\nSupport:\n- Email: schoolskyling@gmail.com\n- Phone: +7 776 661 6110'],
       ['Refund Policy', 'Refund conditions:\n- The user may refuse the service before the service begins.\n- If the service has not yet been provided, the user may request a refund.\n- Refunds are made using the same payment method used for payment, within timeframes that depend on the bank and payment system.\n- If access to the digital service has already been provided and the user has started using the service, the refund may be limited by the actual volume of services already provided.\n\nTo request a refund, email schoolskyling@gmail.com and include:\n- Full name\n- Payment date\n- Payment amount\n- Reason for refund\n- Contact phone number or email'],
       ['Company Details', 'Business details:\n- Individual Entrepreneur Muratov\n- IIN: 060611551367\n- Address: Kazakhstan, Karaganda, Baiken Ashimova 21\n- Bank: JSC Kaspi Bank\n- KBe: 19\n- BIK: CASPKZKA\n- Account number: KZ59722S000051751772\n- Phone: +7 702 260 11 77\n- Email: ajbatmuratov2@gmail.com'],
-      ['Public Offer', publicOfferText],
+      ['Лицензионное соглашение и публичная оферта', publicOfferText],
       ['Privacy Policy', privacyPolicyText]
     ]
   },
@@ -252,7 +252,7 @@ const ui = {
       ['Условия использования', 'Условия оказания услуги:\n- Услуги предоставляются онлайн.\n- После успешной оплаты пользователь получает доступ автоматически или в течение 24 часов.\n- Доступ предоставляется на период, указанный в описании выбранного тарифа.\n- Для получения услуги пользователь должен указать корректные контактные данные: Telegram, email или номер телефона.\n\nПоддержка:\n- Email: schoolskyling@gmail.com\n- Телефон: +7 776 661 6110'],
       ['Политика возврата', 'Условия возврата:\n- Пользователь может отказаться от услуги до начала ее оказания.\n- Если услуга еще не была предоставлена, пользователь может запросить возврат.\n- Возврат выполняется тем же способом оплаты, которым была совершена оплата; сроки зависят от банка и платежной системы.\n- Если доступ к цифровой услуге уже предоставлен и пользователь начал пользоваться сервисом, сумма возврата может быть ограничена фактически оказанным объемом услуг.\n\nДля запроса возврата напишите на schoolskyling@gmail.com и укажите:\n- Полное имя\n- Дату оплаты\n- Сумму оплаты\n- Причину возврата\n- Контактный телефон или email'],
       ['Реквизиты компании', 'Данные бизнеса:\n- Индивидуальный предприниматель Муратов\n- ИИН: 060611551367\n- Адрес: Казахстан, Караганда, Байкена Ашимова 21\n- Банк: АО Kaspi Bank\n- КБе: 19\n- БИК: CASPKZKA\n- Номер счета: KZ59722S000051751772\n- Телефон: +7 702 260 11 77\n- Email: ajbatmuratov2@gmail.com'],
-      ['Публичная оферта', publicOfferText],
+      ['Лицензионное соглашение и публичная оферта', publicOfferText],
       ['Политика конфиденциальности', privacyPolicyText]
     ]
   }
@@ -1072,7 +1072,8 @@ function InterfaceLanguageScreen({ copy, selected, onBack, onSelect }: { copy: U
 }
 
 function CompanyInfoScreen({ copy, onBack }: { copy: UiCopy; onBack: () => void }) {
-  const [openSection, setOpenSection] = useState<string | null>(copy.companySections[0][0]);
+  const legalSections = copy.companySections.slice(-2);
+  const [openSection, setOpenSection] = useState<string | null>(legalSections[0][0]);
 
   return (
     <div className="page companyInfoPage">
@@ -1081,7 +1082,7 @@ function CompanyInfoScreen({ copy, onBack }: { copy: UiCopy; onBack: () => void 
       </button>
       <h1>{copy.companyInformation}</h1>
       <div className="companyInfoList">
-        {copy.companySections.map(([title, body]) => (
+        {legalSections.map(([title, body]) => (
           <button
             className={openSection === title ? 'companyInfoPanel open' : 'companyInfoPanel'}
             key={title}
