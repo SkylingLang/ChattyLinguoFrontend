@@ -10,12 +10,9 @@ VOICE_OPTIONS = ["Alex", "Eric", "Henry", "James", "Alexa", "Emily"]
 VOICE_SPEED_OPTIONS = [0.75, 1.0, 1.25, 1.5]
 LEVEL_OPTIONS = [
     "Beginner",
-    "Elementary",
-    "Pre-Intermediate",
     "Intermediate",
     "Upper-Intermediate",
     "Advanced",
-    "Native",
 ]
 TOPIC_OPTIONS = [
     "Travel and Culture",
