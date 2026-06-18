@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'api_client.dart';
+import 'legal_documents.dart';
 import 'models.dart';
 
 void main() {
@@ -32,14 +33,8 @@ const companyInfoSections = [
     'Company Details',
     'Business details:\n- Individual Entrepreneur Muratov\n- IIN: 060611551367\n- Address: Kazakhstan, Karaganda, Baiken Ashimova 21\n- Bank: JSC Kaspi Bank\n- KBe: 19\n- BIK: CASPKZKA\n- Account number: KZ59722S000051751772\n- Phone: +7 702 260 11 77\n- Email: ajbatmuratov2@gmail.com'
   ),
-  (
-    'Public Offer',
-    'This public offer defines the conditions for using the online English learning service Aqbota.\n\nBy paying for a tariff or using the service, the user accepts these terms.\n\nThe provider gives the user access to:\n- Online educational tools\n- English practice\n- Automated corrections\n- Vocabulary features\n- Related learning materials\n\nThe user agrees to provide accurate contact information and use the service only for personal learning purposes. Current access terms are determined by the tariff selected and paid by the user.'
-  ),
-  (
-    'Privacy Policy',
-    'We collect and process only the information needed to provide the online learning service:\n- Telegram account data\n- Contact details provided by the user\n- Learning messages\n- Saved words\n- Progress data\n- Payment-related information\n- Technical data required for service operation\n\nThis information is used to provide access, support learning features, process payments, improve service quality, and contact the user about the service.\n\nWe do not sell personal data to third parties. The user may contact schoolskyling@gmail.com to request information about their data or ask for deletion where applicable.'
-  ),
+  ('Public Offer', publicOfferText),
+  ('Privacy Policy', privacyPolicyText),
 ];
 
 class ChattyMiniApp extends StatelessWidget {
