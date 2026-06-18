@@ -33,7 +33,7 @@ const companyInfoSections = [
     'Company Details',
     'Business details:\n- Individual Entrepreneur Muratov\n- IIN: 060611551367\n- Address: Kazakhstan, Karaganda, Baiken Ashimova 21\n- Bank: JSC Kaspi Bank\n- KBe: 19\n- BIK: CASPKZKA\n- Account number: KZ59722S000051751772\n- Phone: +7 702 260 11 77\n- Email: ajbatmuratov2@gmail.com'
   ),
-  ('Лицензионное соглашение и публичная оферта', publicOfferText),
+  ('License Agreement and Public Offer', publicOfferText),
   ('Privacy Policy', privacyPolicyText),
 ];
 

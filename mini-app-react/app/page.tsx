@@ -166,7 +166,7 @@ const ui = {
       ['Terms of Service', 'Service conditions:\n- Services are provided online.\n- After successful payment, the user receives access automatically or within 24 hours.\n- Access is provided for the period specified in the selected tariff description.\n- To receive the service, the user must provide correct contact details: Telegram, email, or phone number.\n\nSupport:\n- Email: schoolskyling@gmail.com\n- Phone: +7 776 661 6110'],
       ['Refund Policy', 'Refund conditions:\n- The user may refuse the service before the service begins.\n- If the service has not yet been provided, the user may request a refund.\n- Refunds are made using the same payment method used for payment, within timeframes that depend on the bank and payment system.\n- If access to the digital service has already been provided and the user has started using the service, the refund may be limited by the actual volume of services already provided.\n\nTo request a refund, email schoolskyling@gmail.com and include:\n- Full name\n- Payment date\n- Payment amount\n- Reason for refund\n- Contact phone number or email'],
       ['Company Details', 'Business details:\n- Individual Entrepreneur Muratov\n- IIN: 060611551367\n- Address: Kazakhstan, Karaganda, Baiken Ashimova 21\n- Bank: JSC Kaspi Bank\n- KBe: 19\n- BIK: CASPKZKA\n- Account number: KZ59722S000051751772\n- Phone: +7 702 260 11 77\n- Email: ajbatmuratov2@gmail.com'],
-      ['Лицензионное соглашение и публичная оферта', publicOfferText],
+      ['License Agreement and Public Offer', publicOfferText],
       ['Privacy Policy', privacyPolicyText]
     ]
   },
