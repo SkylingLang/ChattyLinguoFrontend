@@ -970,6 +970,10 @@ mark {
   font-weight: 800;
 }
 
+.profilePage .streakPanel {
+  margin-top: 16px;
+}
+
 .secondaryButton {
   margin-top: 12px;
   margin-bottom: 20px;
