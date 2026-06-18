@@ -23,7 +23,6 @@ import {
   Star,
   Ticket,
   UserRound,
-  Volume2,
   X
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -90,7 +89,6 @@ const ui = {
     openBotFirst: 'Open the bot with /start first, then reopen this Mini App.',
     learner: 'Learner',
     inviteFriends: 'Invite Friends',
-    shareProfile: 'Share Profile',
     daysStreak: 'days streak',
     wordsSaid: 'Words Said',
     maxStreak: 'Max streak',
@@ -120,7 +118,6 @@ const ui = {
     saving: 'Saving...',
     settings: 'Settings',
     getUnlimited: 'Get unlimited access',
-    giftSubscription: 'Gift subscription',
     changeVoice: (voice: string) => `Change Aqbota voice · ${voice}`,
     changeLevel: (level: string) => `Change your English level · ${level}`,
     changeSpeed: (speed: number) => `Change Aqbota voice speed · ${speed}x`,
@@ -176,7 +173,6 @@ const ui = {
     openBotFirst: 'Сначала откройте бота через /start, затем снова откройте Mini App.',
     learner: 'Ученик',
     inviteFriends: 'Пригласить друзей',
-    shareProfile: 'Поделиться профилем',
     daysStreak: 'дней подряд',
     wordsSaid: 'Сказано слов',
     maxStreak: 'Макс. серия',
@@ -206,7 +202,6 @@ const ui = {
     saving: 'Сохраняем...',
     settings: 'Настройки',
     getUnlimited: 'Получить безлимитный доступ',
-    giftSubscription: 'Подарить подписку',
     changeVoice: (voice: string) => `Изменить голос Aqbota · ${voice}`,
     changeLevel: (level: string) => `Изменить уровень английского · ${level}`,
     changeSpeed: (speed: number) => `Изменить скорость голоса Aqbota · ${speed}x`,
@@ -434,7 +429,6 @@ function ProfileScreen({ profile, copy }: { profile: UserProfile; copy: UiCopy }
         <p><Star fill="#f2a51a" /> {profile.stars_count}</p>
       </div>
       <button className="primaryButton" onClick={inviteFriends}>{copy.inviteFriends}</button>
-      <button className="secondaryButton">{copy.shareProfile}</button>
       <Panel className="streakPanel">
         <div className="streakTop">
           <Flame />
@@ -736,6 +730,7 @@ function SavedDefinitionSheet({
     <DefinitionBottomSheet
       entry={selected}
       copy={copy}
+      showPronunciation={false}
       onClose={() => setSelected(null)}
       onChange={(entry) => {
         if (!entry.saved) {
@@ -754,18 +749,20 @@ function SavedDefinitionSheet({
 function DefinitionBottomSheet({
   entry,
   copy,
+  showPronunciation = true,
   onChange,
   onClose
 }: {
   entry: WordDefinition;
   copy: UiCopy;
+  showPronunciation?: boolean;
   onChange: (entry: WordDefinition) => void;
   onClose: () => void;
 }) {
   return (
     <div className="sheetBackdrop" onClick={onClose}>
       <div className="sheetSurface" onClick={(event) => event.stopPropagation()}>
-        <DefinitionSheet entry={entry} copy={copy} onChange={onChange} onClose={onClose} />
+        <DefinitionSheet entry={entry} copy={copy} showPronunciation={showPronunciation} onChange={onChange} onClose={onClose} />
       </div>
     </div>
   );
@@ -774,11 +771,13 @@ function DefinitionBottomSheet({
 function DefinitionSheet({
   entry,
   copy,
+  showPronunciation,
   onChange,
   onClose
 }: {
   entry: WordDefinition;
   copy: UiCopy;
+  showPronunciation: boolean;
   onChange: (entry: WordDefinition) => void;
   onClose: () => void;
 }) {
@@ -804,7 +803,7 @@ function DefinitionSheet({
     <section className="definitionSheet">
       <div className="definitionHeader">
         <h2>{entry.word}</h2>
-        {entry.pronunciation ? <span className="pronounce">{entry.pronunciation} <Volume2 size={15} /></span> : null}
+        {showPronunciation && entry.pronunciation ? <span className="pronounce">{entry.pronunciation}</span> : null}
         {entry.translation ? <span>{entry.translation}</span> : null}
         <button className={entry.saved ? 'bookmarkButton active' : 'bookmarkButton'} onClick={toggleSave} aria-label={entry.saved ? copy.removeSavedWord : copy.saveWord}>
           <Bookmark fill={entry.saved ? 'black' : 'none'} />
@@ -1001,7 +1000,6 @@ function SettingsScreen({ profile, copy, onProfile }: { profile: UserProfile; co
       <SettingsRow icon={Heart} label={copy.getUnlimited} premium onClick={() => setShowPlans(true)} />
       <SettingsGroup>
         <SettingsRow icon={UserRound} label={copy.inviteFriends} onClick={() => sendCommand('/invite')} />
-        <SettingsRow icon={Gift} label={copy.giftSubscription} onClick={() => sendCommand('/unlimited')} />
       </SettingsGroup>
       <SettingsGroup>
         <SettingsRow icon={Mic} label={copy.changeVoice(profile.selected_voice)} onClick={() => sendCommand('/voice')} />

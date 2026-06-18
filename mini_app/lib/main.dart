@@ -507,12 +507,14 @@ class WordDefinitionSheet extends StatefulWidget {
     required this.api,
     required this.word,
     required this.snapshot,
+    this.showPronunciation = true,
     super.key,
   });
 
   final ApiClient api;
   final String word;
   final AsyncSnapshot<WordDefinition> snapshot;
+  final bool showPronunciation;
 
   @override
   State<WordDefinitionSheet> createState() => _WordDefinitionSheetState();
@@ -574,7 +576,7 @@ class _WordDefinitionSheetState extends State<WordDefinitionSheet> {
               else if (entry != null) ...[
                 Row(
                   children: [
-                    if (entry.pronunciation != null)
+                    if (widget.showPronunciation && entry.pronunciation != null)
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 4),
@@ -812,11 +814,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               text: 'Invite Friends',
               color: Color(0xff358fe8),
               textColor: Colors.white),
-          const SizedBox(height: 14),
-          const WideButton(
-              text: 'Share Profile',
-              color: Color(0xffbedbf5),
-              textColor: Color(0xff2f8be8)),
           const SizedBox(height: 20),
           Panel(
             child: Column(
@@ -985,6 +982,7 @@ class _SavedScreenState extends State<SavedScreen> {
         api: widget.api,
         word: word.word,
         snapshot: AsyncSnapshot.withData(ConnectionState.done, entry),
+        showPronunciation: false,
       ),
     );
   }
@@ -1257,8 +1255,6 @@ class SettingsScreen extends StatelessWidget {
         ),
         const SizedBox(height: 30),
         const SettingsRow(icon: Icons.group_add, label: 'Invite friends'),
-        const SettingsRow(
-            icon: Icons.card_giftcard, label: 'Gift subscription'),
         const SizedBox(height: 30),
         const SettingsRow(icon: Icons.groups, label: 'Change mode'),
         SettingsRow(
